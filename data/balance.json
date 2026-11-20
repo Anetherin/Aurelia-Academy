@@ -5,12 +5,13 @@
     "tiers: minScore thresholds and revenue/tip multipliers for club shifts and VIP encounters."
   ],
   "economy": {
-    "initialDebt": 2000000,
-    "initialFunds": 12000,
+    "initialDebt": 500000,
+    "initialFunds": 15000,
     "maxYears": 4,
     "daysPerYear": 100,
     "semesterDays": 50,
-    "weeklyInterestRate": 0.025,
+    "weeklyInterestRate": 0.015,
+    "interestGraceDays": 7,
     "facilityCostMult": 2.8,
     "researcherDiscount": 0.2,
     "dailyUpkeepBase": 120,

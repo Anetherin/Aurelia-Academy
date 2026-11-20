@@ -102,6 +102,26 @@ async function aiBackstory(boxId, sid){
   }
 }
 
+async function autoWriteBackstory(s){
+  if(!s || !SET.ai || !SET.ai.on || !SET.ai.autoBackstory) return;
+  const plug = getTextPlugin();
+  if(!plug) return;
+  const tpl = DEFAULT_AI_TPL.backstory;
+  if(!tpl) return;
+  const instruction = fillAiTpl(tpl, aiCtx(s, { scene: 'portrait' })).replace(/ {2,}/g, ' ').trim();
+  try{
+    const res = await plug({ instruction });
+    const text = String(typeof res === 'string' ? res : (res && (res.text || res.generatedText || res.output)) || '').trim();
+    if(text && !YOUTH_TEST.test(text)){
+      s.description = cleanText(text);
+      if(S) save();
+      const el = $('#bs_' + s.id);
+      if(el) el.textContent = s.description;
+      else if(S) render();
+    }
+  }catch(e){}
+}
+
 function aiBtn(boxId, kind, sid, extra){
   if(!SET.ai || !SET.ai.on) return '';
   const payload = JSON.stringify(extra || {}).replace(/'/g, '&#39;');

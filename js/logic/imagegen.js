@@ -56,7 +56,7 @@ async function saveImage(key, url, s, scene){
 function syncImgBtn(boxId){
   const b = $('#' + boxId + '_t');
   const box = $('#' + boxId);
-  if(b && box) b.textContent = box.dataset.key ? 'Hide image' : 'Show image';
+  if(b && box) b.textContent = box.dataset.key ? '🙈 Hide image' : '🖼 Show image';
 }
 
 async function showImg(boxId, id, scene = 'portrait', cloth, mode, opts = {}){
@@ -67,24 +67,27 @@ async function showImg(boxId, id, scene = 'portrait', cloth, mode, opts = {}){
   const sc = sceneInfo(scene);
   cloth = cloth || sc.cloth || 'dressed';
 
+  if(opts && opts.expr) box.dataset.expr = opts.expr;
+  const expr = (opts && opts.expr) || box.dataset.expr || undefined;
+
+  const startHidden = box.dataset.hide ? box.dataset.hide === '1' : !!SET.imgHidden;
+  if(startHidden && mode !== 'new'){
+    box.dataset.key = '';
+    if(box.dataset.ext){ box.innerHTML = ''; syncImgBtn(boxId); return; }
+    const safeA0 = `'${esc(boxId)}','${esc(id)}','${esc(scene)}','${esc(cloth)}'`;
+    box.innerHTML = `<div class="row imgshow"><button class="sm" onclick="toggleImg(${safeA0},false)">🖼 Show image</button></div>`;
+    return;
+  }
+
   if(mode === undefined) mode = SET.autoImg !== false ? 'auto' : 'manual';
   if(mode === 'manual') mode = undefined;
 
   const safeA = `'${esc(boxId)}','${esc(id)}','${esc(scene)}','${esc(cloth)}'`;
-  const startHidden = box.dataset.hide ? box.dataset.hide === '1' : !!SET.imgHidden;
-
-  if(startHidden && mode !== 'new' && mode !== 'auto'){
-    box.dataset.key = '';
-    if(box.dataset.ext){ box.innerHTML = ''; syncImgBtn(boxId); return; }
-    box.innerHTML = `<div class="row imgshow"><button class="sm" onclick="toggleImg(${safeA},false)">Show image</button></div>`;
-    return;
-  }
-
   const key = imgKey(s, scene, cloth);
   box.dataset.key = key;
   syncImgBtn(boxId);
 
-  const prompt = buildPrompt(s, scene, cloth, opts);
+  const prompt = buildPrompt(s, scene, cloth, expr ? { expr } : {});
   const saved = mode === 'new' ? null : await imgGet(key);
 
   if(box.dataset.key !== key || !box.isConnected) return;
@@ -102,13 +105,14 @@ async function showImg(boxId, id, scene = 'portrait', cloth, mode, opts = {}){
     wrap.innerHTML = `<div class="imgph">No saved image for this scene yet.</div>`;
   }
 
+  const safeFilePrefix = esc(s.name.replace(/[^a-z0-9 _-]/gi, '').trim() || 'student');
   const bar = document.createElement('div');
   bar.className = 'row';
   bar.innerHTML = `<button class="sm" onclick="toggleImg(${safeA},true)">Hide</button>`
     + `<button class="sm" onclick="showImg(${safeA},'new')">${saved ? 'Regenerate' : 'Generate'}</button>`
     + `<button class="sm" onclick="uploadImg(${safeA})">Upload</button>`
     + (saved
-      ? `<button class="sm" onclick="downloadImg('${esc(key)}','${esc(s.name).replace(/'/g, '')}')">Save file</button>`
+      ? `<button class="sm" onclick="downloadImg('${esc(key)}','${safeFilePrefix}')">Save file</button>`
         + `<button class="sm" onclick="useAvatar('${esc(key)}','${esc(id)}')">Use as Avatar</button>`
         + `<button class="sm" onclick="deleteImg('${esc(key)}',${safeA})">Clear</button>`
       : '');
@@ -213,19 +217,20 @@ async function deleteImg(key, boxId, id, scene, cloth){
   showImg(boxId, id, scene, cloth, 'manual');
 }
 
-function toggleImgBtn(boxId, id, scene, cloth){
+function toggleImgBtn(boxId, id, scene, cloth, expr){
   const box = $('#' + boxId);
   if(!box) return;
+  if(expr) box.dataset.expr = expr;
   const shown = !!box.dataset.key;
   box.dataset.hide = shown ? '1' : '0';
-  showImg(boxId, id, scene, cloth || null, shown ? 'manual' : 'auto');
+  showImg(boxId, id, scene, cloth || null, shown ? 'manual' : 'auto', expr ? { expr } : {});
 }
 
 function toggleImg(boxId, id, scene, cloth, hide){
   const box = $('#' + boxId);
   if(!box) return;
   box.dataset.hide = hide ? '1' : '0';
-  showImg(boxId, id, scene, cloth, hide ? 'manual' : 'auto');
+  showImg(boxId, id, scene, cloth, hide ? 'manual' : undefined);
 }
 
 function avatarHTML(s){

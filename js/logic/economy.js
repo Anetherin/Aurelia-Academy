@@ -161,6 +161,7 @@ function enrollApplicant(id){
   logEvent(`ENROLLMENT: ${stu.name} (${stu.major}) signed an academy contract.`, 'success');
   save();
   render();
+  if(typeof autoWriteBackstory === 'function') autoWriteBackstory(stu);
   return true;
 }
 

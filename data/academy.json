@@ -239,6 +239,7 @@
       "id": "rest",
       "name": "Director's Recess",
       "energy": -35,
+      "periods": ["Morning", "Afternoon", "Evening", "Night"],
       "targeted": false,
       "effect": "Recovers +35 Director stamina."
     },
@@ -246,6 +247,7 @@
       "id": "hall_walk",
       "name": "Walking the Halls",
       "energy": 15,
+      "periods": ["Morning", "Afternoon", "Evening"],
       "targeted": false,
       "effect": "All students gain +1.5 Compliance and +3.0 Arousal during daytime/evening shifts."
     },
@@ -253,6 +255,7 @@
       "id": "lead_seminar",
       "name": "Lead Academic Seminar",
       "energy": 40,
+      "periods": ["Morning", "Afternoon"],
       "targeted": false,
       "effect": "Grants extra skill gains (+3.5 base) to all studying students and boosts Academic Prestige."
     },
@@ -260,6 +263,7 @@
       "id": "city_work",
       "name": "City Consulting",
       "energy": 45,
+      "periods": ["Morning", "Afternoon", "Evening"],
       "targeted": false,
       "effect": "Earn off-site consulting funds scaled by your Intelligence and Academic Prestige."
     },
@@ -267,6 +271,7 @@
       "id": "personal_counseling",
       "name": "Targeted Counseling",
       "energy": 25,
+      "periods": ["Morning", "Afternoon", "Evening"],
       "targeted": true,
       "effect": "Reduces one student's fatigue by 28 and raises her Compliance by +5."
     },
@@ -274,6 +279,7 @@
       "id": "vip_filtering",
       "name": "VIP Filtering",
       "energy": 25,
+      "periods": ["Evening"],
       "targeted": false,
       "effect": "Screens Evening patrons: +35% tips, +1 VIP/Hostess patron, and -35% incident risk."
     },
@@ -281,6 +287,7 @@
       "id": "intimate_guidance",
       "name": "Intimate Guidance",
       "energy": 50,
+      "periods": ["Morning", "Afternoon", "Evening"],
       "targeted": true,
       "effect": "Private one-on-one session: +8 Lust, +7 Compliance, +5 Seduction, +20 Arousal, +3 Depravity."
     }

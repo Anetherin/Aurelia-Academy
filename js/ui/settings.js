@@ -14,6 +14,7 @@ function viewSettings(){
       <label class="chk"><input type="checkbox" id="s_autoImg" ${SET.autoImg !== false ? 'checked' : ''}> Auto-generate images on sheets when none saved</label>
       <label class="chk"><input type="checkbox" id="s_autoPort" ${SET.autoPortrait ? 'checked' : ''}> Auto-generate portraits</label>
       <label class="chk"><input type="checkbox" id="s_imgHidden" ${SET.imgHidden ? 'checked' : ''}> Start images hidden</label>
+      <label class="chk"><input type="checkbox" id="s_repImg" ${SET.repImg !== false ? 'checked' : ''}> Period Report: auto-show saved encounter images</label>
       <label class="chk"><input type="checkbox" id="s_libPool" ${SET.libraryInPool ? 'checked' : ''}> Library templates appear in Admissions</label>
       <label class="chk"><input type="checkbox" id="s_thoughts" ${SET.showStudentThoughts !== false ? 'checked' : ''}> Show student inner thoughts on VIP reports</label>
     </div>
@@ -28,6 +29,8 @@ function viewSettings(){
     <p class="muted">Opt-in scene writing using Perchance's <code>ai-text-plugin</code>. Prompts live in <code>data/ai-prompts.json</code>. Plugin: ${txtPlug ? '<span class="good">connected</span>' : '<span class="warn">not connected</span>'}</p>
     <div class="row">
       <label class="chk"><input type="checkbox" id="ai_on" ${SET.ai && SET.ai.on ? 'checked' : ''}> Enable ✨ Write scene buttons</label>
+      <label class="chk"><input type="checkbox" id="ai_auto" ${SET.ai && SET.ai.auto ? 'checked' : ''}> Auto-write Late-Night Visit scenes on Period Report</label>
+      <label class="chk"><input type="checkbox" id="ai_bs" ${SET.ai && SET.ai.autoBackstory ? 'checked' : ''}> Auto-write backstories when enrolling new students</label>
     </div>
     <label class="muted">Extra prose guidance<textarea id="ai_guid">${esc((SET.ai && SET.ai.guidance) || '')}</textarea></label>
     <div class="row" style="margin-top:8px">
@@ -75,6 +78,7 @@ function saveSettingsUI(){
   SET.autoImg = $('#s_autoImg').checked;
   SET.autoPortrait = $('#s_autoPort').checked;
   SET.imgHidden = $('#s_imgHidden').checked;
+  SET.repImg = $('#s_repImg').checked;
   SET.libraryInPool = $('#s_libPool').checked;
   SET.showStudentThoughts = $('#s_thoughts').checked;
   saveSettings();
@@ -84,6 +88,8 @@ function saveSettingsUI(){
 function saveAiUI(){
   SET.ai = SET.ai || {};
   SET.ai.on = $('#ai_on').checked;
+  SET.ai.auto = $('#ai_auto').checked;
+  SET.ai.autoBackstory = $('#ai_bs').checked;
   SET.ai.guidance = $('#ai_guid').value;
   saveSettings();
   toast('AI settings saved.');

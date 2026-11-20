@@ -84,7 +84,8 @@ function renderSetup(){
             </div>
           </div>
           <div class="row" onclick="event.stopPropagation()">
-            <button class="${isSel ? 'primary' : ''}" onclick="toggleSetupSelect('${a.id}')" ${!isSel && selSet.size >= capMax ? 'disabled' : ''}>${isSel ? '✓ Selected' : 'Select'}</button>
+            <button class="sm" onclick="previewSetupApplicant('${esc(a.id)}')">Portrait / Inspect</button>
+            <button class="${isSel ? 'primary' : ''}" onclick="toggleSetupSelect('${esc(a.id)}')" ${!isSel && selSet.size >= capMax ? 'disabled' : ''}>${isSel ? '✓ Selected' : 'Select'}</button>
           </div>
         </div>
         ${isExp ? `<div class="dossier-expand">
@@ -102,6 +103,27 @@ function renderSetup(){
       </div>`;
     }).join('')}
   </div>`;
+}
+
+function previewSetupApplicant(id){
+  if(!SETUP) return;
+  const a = SETUP.applicants.find(x => x.id === id);
+  if(!a) return;
+  const isSel = SETUP.selected.includes(a.id);
+  const capMax = dormCapacity();
+  modal(`<h2>${esc(a.name)} <span class="tag">Rank ${studentRank(a)}</span></h2>
+    <div class="sheet">
+      <div><div id="appImg"></div></div>
+      <div>
+        <div class="muted">${esc(a.major)} · Age ${a.age}</div>
+        <p class="story">${esc(a.description)}</p>
+        <p class="muted small">${esc(a.physicalDescription)}</p>
+        <div class="row" style="margin-top:12px">
+          <button class="primary" onclick="toggleSetupSelect('${esc(a.id)}');closeModal()" ${!isSel && SETUP.selected.length >= capMax ? 'disabled' : ''}>${isSel ? 'Unselect Student' : 'Select Student'}</button>
+        </div>
+      </div>
+    </div>`, { wide: true });
+  showImg('appImg', a.id, 'portrait', 'dressed', SET.autoPortrait ? 'auto' : 'manual');
 }
 
 function finishDirectorSetup(){

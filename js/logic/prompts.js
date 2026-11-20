@@ -74,10 +74,13 @@ function clothText(s, cloth, sceneKey){
   const slot = info.outfitSlot || 'class';
   const cId = cloth || info.cloth || 'dressed';
   const tpl = SNIPPETS.clothing[cId] || SNIPPETS.clothing.dressed;
-  const out = tpl
+  let out = tpl
     .replace(/\{outfit\}/g, outfitText(s, slot))
     .replace(/\{underwear\}/g, underText(s))
     .replace(/\{pubic\}/g, pubicText(s));
+  if(s.design && s.design.bust === 'AA'){
+    out = out.replace(/\bbare breasts\b/gi, 'bare flat chest');
+  }
   return cleanText(out);
 }
 
@@ -133,7 +136,15 @@ function buildPrompt(s, sceneKey = 'portrait', cloth, opts = {}){
     ? (sc.pov ? SCENES_DATA.directorPhrase : SCENES_DATA.clientPhrase)
     : '';
   const expr = exprText(opts.expr || (sc.intimate ? 'alluring' : 'composed'));
-  const snipKey = sc.pov ? 'pov' : String(sceneKey).startsWith('class_') ? 'class' : String(sceneKey).startsWith('job_') || String(sceneKey).startsWith('svc:') ? 'club' : sc.intimate ? 'private' : 'rest';
+  const snipKey = sc.pov
+    ? 'pov'
+    : sc.intimate
+      ? 'private'
+      : String(sceneKey).startsWith('class_')
+        ? 'class'
+        : String(sceneKey).startsWith('job_')
+          ? 'club'
+          : 'rest';
   const snip = (SNIPPETS.scenes && SNIPPETS.scenes[snipKey]) || '';
 
   const parts = [

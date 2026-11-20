@@ -50,12 +50,22 @@ const BOT = `async (days) => {
   doImportDossier(true);
   assert(SETUP.applicants[0].name === "Clara O'Neill", 'dossier import failed');
 
+  previewSetupApplicant(SETUP.applicants[0].id);
+  assert(!$('#modal').classList.contains('hidden'), 'setup preview modal did not open');
+  closeModal();
+
   toggleSetupSelect(SETUP.applicants[0].id);
   toggleSetupSelect(SETUP.applicants[1].id);
   toggleSetupSelect(SETUP.applicants[2].id);
   finalizeInitialSetup();
   assert(S && S.students.length === 3, 'expected 3 initial students');
+  assert(S.debt === 500000, 'expected tuned initial debt 500000');
   assert(S.director.bgId === 'fixer' && S.director.aptitudes.physicality === 45, 'fixer background bonus');
+
+  // Test free semester refresh
+  assert(!S.semesterRefreshed, 'expected semesterRefreshed false initially');
+  refreshApplicants(true);
+  assert(S.semesterRefreshed === true, 'expected free semester refresh to mark semesterRefreshed');
 
   // 2. Upgrade facilities & enroll another student
   S.funds = 5000000;
@@ -84,15 +94,19 @@ const BOT = `async (days) => {
   assert(S.students[0].clubRole === 'None' && S.students[0].fatigue < 95, 'collapse recovery failed');
   assert(S.lastPeriod.highlights.some(h => h.kind === 'collapse'), 'collapse highlight missing');
 
-  // Check Night Visit triggers and does NOT stick to Morning scene
+  // Check Night Visit triggers, Night auto-rest preserves selectedProtocol, and does NOT stick to Morning scene
   S.time = 'Night';
+  S.director.energy = 40;
+  S.selectedProtocol = 'lead_seminar';
   S.students[1].arousal = 92;
   S.students[1].skills.compliance = 100;
   advanceTime(); // Night -> Morning
   assert(S.time === 'Morning', 'expected Morning after Night');
+  assert(S.director.energy === 75, 'expected Night auto-rest (+35E) even with lead_seminar selected');
+  assert(S.selectedProtocol === 'lead_seminar', 'expected selectedProtocol preserved across Night');
   assert(studentCurrentScene(S.students[1], 'Morning').startsWith('class_'), 'Night scene must not stick on Morning');
 
-  // 4. Play N full days (4 ticks/day) exercising all protocols, roles, VIP services & weekly interest
+  // 4. Play N full days (4 ticks/day) exercising all protocols, roles, VIP services, grace period & weekly interest
   const startDebt = S.debt;
   const startDay = S.day;
   for (let d = 0; d < days; d++) {
@@ -109,9 +123,12 @@ const BOT = `async (days) => {
       });
       advanceTime();
     }
+    if (S.day === 8) {
+      assert(S.stats.interestAccrued === 0, 'Day 7 grace period should prevent interest on first week');
+    }
   }
   assert(S.day === startDay + days, 'day count mismatch');
-  assert(S.stats.interestAccrued > 0, 'weekly interest never accrued over ' + days + ' days');
+  assert(S.stats.interestAccrued > 0, 'weekly interest never accrued after grace period over ' + days + ' days');
 
   // 5. Debt partial payment & full payoff victory check
   S.funds = Math.max(S.funds, S.debt + 10000);
@@ -144,15 +161,53 @@ const BOT = `async (days) => {
     TAB = k;
     render();
   }
-  openSheet(S.students[0].id);
-  await new Promise(r => setTimeout(r, 80));
+
+  // Verify imgHidden respected even when autoImg is true, and Clara O'Neill Save file onclick is safe
+  const clara = S.students.find(x => x.name === "Clara O'Neill") || S.students[0];
+  SET.autoImg = true;
+  SET.imgHidden = true;
+  openSheet(clara.id);
+  assert($('#sheetImg').dataset.key === '', 'expected sheetImg hidden when SET.imgHidden=true');
+  toggleImg('sheetImg', clara.id, $('#sceneSel').value, $('#clothSel').value, false);
+  let dlBtn = null;
+  for (let w = 0; w < 40; w++) {
+    await new Promise(r => setTimeout(r, 50));
+    dlBtn = [...document.querySelectorAll('#sheetImg button')].find(b => b.textContent.includes('Save file'));
+    if (dlBtn) break;
+  }
   assert(IMGKEYS.size >= 1, 'mock t2i failed to cache image in IndexedDB');
+  assert(dlBtn, 'Save file button did not render after image generation');
+  assert(!dlBtn.getAttribute('onclick').includes("O'Neill"), 'raw apostrophe leaked into downloadImg onclick');
+  SET.imgHidden = false;
+  closeModal();
+
+  // Verify saved encounter image auto-shows on Period Report when SET.repImg is true
+  SET.repImg = true;
+  const repTarget = S.students[0];
+  await imgPut(imgKey(repTarget, 'svc:vaginal', 'nude'), 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+  S.lastPeriod = {
+    day: S.day, time: 'Evening', nextDay: S.day, nextTime: 'Night',
+    income: 500, upkeep: 0, net: 500,
+    highlights: [{ id: 'hl_rep_test', kind: 'vip', title: 'VIP Test', text: 'Test', studentId: repTarget.id, scene: 'svc:vaginal', cloth: 'nude', expr: 'Excellent' }]
+  };
+  TAB = 'report';
+  render();
+  await new Promise(r => setTimeout(r, 40));
+  assert($('#hl_rep_test_img img'), 'expected saved report image to auto-display when SET.repImg=true');
+
+  openSheet(S.students[0].id);
   exportDossierModal(S.students[0].id);
   closeModal2();
   await aiBackstory('bs_' + S.students[0].id, S.students[0].id);
   saveToLibrary(S.students[0].id);
   assert(LIB.length >= 1, 'saveToLibrary failed');
   closeModal();
+
+  // Check VIP prompt private snippet & flat-chest nude wording
+  const flatStu = Object.assign(JSON.parse(JSON.stringify(S.students[0])), { design: Object.assign({}, S.students[0].design, { bust: 'AA' }) });
+  const flatPrompt = buildPrompt(flatStu, 'svc:vaginal', 'nude');
+  assert(flatPrompt.includes(SNIPPETS.scenes.private), 'VIP scene missing private snippet');
+  assert(flatPrompt.includes('bare flat chest') && !flatPrompt.includes('bare breasts'), 'AA bust nude prompt failed chestFix');
 
   // Save/Import round-trip check & Year 4 foreclosure check
   const exported = JSON.stringify(S);

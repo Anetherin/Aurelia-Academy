@@ -89,10 +89,12 @@ function render(){
   const ftr = $('#ftr');
 
   const daysUntilInt = 7 - ((S.day - 1) % 7);
+  const inGrace = S.day <= (BAL.economy.interestGraceDays || 0);
+  const debtMeta = S.debt > 0 ? (inGrace ? ` <span class="muted small">(grace)</span>` : ` <span class="muted small">(+int ${daysUntilInt}d)</span>`) : '';
   hdr.innerHTML = `<div class="brand">Aurelia Academy <span class="muted small">// Y${S.year} · T${S.term} · Day ${S.day} · <b>${esc(S.time)}</b></span></div>
     <div class="hstats">
       <span>Funds <b class="${S.funds < 0 ? 'warn' : 'good'}">${fmtMoney(S.funds)}</b></span>
-      <span>Debt <b class="${S.debt <= 0 ? 'good' : 'warn'}">${fmtMoney(S.debt)}</b>${S.debt > 0 ? ` <span class="muted small">(+int ${daysUntilInt}d)</span>` : ''}</span>
+      <span>Debt <b class="${S.debt <= 0 ? 'good' : 'warn'}">${fmtMoney(S.debt)}</b>${debtMeta}</span>
       <span>Stamina <b>${Math.round(S.director.energy)}%</b></span>
       <span>Students <b>${S.students.length}/${dormCapacity()}</b></span>
     </div>`;
@@ -110,12 +112,17 @@ function render(){
   else if(TAB === 'admissions') view.innerHTML = viewAdmissions();
   else if(TAB === 'facilities') view.innerHTML = viewFacilities();
   else if(TAB === 'director') view.innerHTML = viewDirector();
-  else if(TAB === 'report') view.innerHTML = viewReport();
+  else if(TAB === 'report'){ view.innerHTML = viewReport(); reportAfterRender(); }
   else if(TAB === 'settings') view.innerHTML = viewSettings();
 
   const curProt = (ACAD.protocols || []).find(p => p.id === S.selectedProtocol) || ACAD.protocols[0];
   const needsTarget = !!(curProt && curProt.targeted);
   const tgtOpts = S.students.map(x => `<option value="${esc(x.id)}" ${S.protocolTargetId === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+  const protHint = S.time === 'Night'
+    ? 'Night: auto-rest (+35E)'
+    : (Array.isArray(curProt.periods) && !curProt.periods.includes(S.time))
+      ? `Runs in ${curProt.periods.join('/')} (recess now)`
+      : `Stamina: ${Math.round(S.director.energy)}%`;
 
   ftr.innerHTML = `<div class="ftr-inner">
     <div class="row ftr-prot">
@@ -125,6 +132,7 @@ function render(){
         </select>
       </label>
       ${needsTarget && S.students.length ? `<select title="Target Student" onchange="S.protocolTargetId=this.value;save()">${tgtOpts}</select>` : ''}
+      <span class="muted small">${esc(protHint)}</span>
     </div>
     <button class="primary" id="advBtn" onclick="advanceTime()" ${S.over ? 'disabled' : ''}>${esc(getTimeActionLabel(S.time))} ▶</button>
   </div>`;
@@ -267,7 +275,9 @@ function viewAdmissions(){
       </div>
       <div class="row">
         <button onclick="openImportDossierModal(false)">Import Dossier JSON</button>
-        <button class="primary" onclick="refreshApplicants(false)">Refresh Queue (${fmtMoney(BAL.economy.applicantRefreshCost)})</button>
+        ${!S.semesterRefreshed
+          ? `<button class="primary" onclick="refreshApplicants(true)">Refresh Queue (Free)</button>`
+          : `<button class="primary" onclick="refreshApplicants(false)">Refresh Queue (${fmtMoney(BAL.economy.applicantRefreshCost)})</button>`}
       </div>
     </div>
   </section>
@@ -410,10 +420,10 @@ function viewDirector(){
     <section class="card">
       <h2>Syndicate Debt Ledger</h2>
       <div class="debt-big ${S.debt <= 0 ? 'good' : 'warn'}">${fmtMoney(S.debt)}</div>
-      <div class="muted small">Weekly interest (${(BAL.economy.weeklyInterestRate * 100).toFixed(1)}% every 7 days): ~${fmtMoney(estInterest)} · ${S.won ? '<span class="good">Debt Cleared!</span>' : `${daysLeft} days until Year ${BAL.economy.maxYears} foreclosure`}</div>
+      <div class="muted small">${S.day <= (BAL.economy.interestGraceDays || 0) ? `Grace period active (first ${BAL.economy.interestGraceDays} days interest-free); then ` : ''}Weekly interest (${(BAL.economy.weeklyInterestRate * 100).toFixed(1)}% every 7 days): ~${fmtMoney(estInterest)} · ${S.won ? '<span class="good">Debt Cleared!</span>' : `${daysLeft} days until Year ${BAL.economy.maxYears} foreclosure`}</div>
       <div class="row" style="margin-top:12px">
-        <button onclick="payDebt(10000)" ${S.debt <= 0 || S.funds < 10000 ? 'disabled' : ''}>Pay $10,000</button>
-        <button onclick="payDebt(50000)" ${S.debt <= 0 || S.funds < 50000 ? 'disabled' : ''}>Pay $50,000</button>
+        <button onclick="payDebt(5000)" ${S.debt <= 0 || S.funds < 5000 ? 'disabled' : ''}>Pay $5,000</button>
+        <button onclick="payDebt(25000)" ${S.debt <= 0 || S.funds < 25000 ? 'disabled' : ''}>Pay $25,000</button>
         <button class="primary" onclick="payAllDebt()" ${S.debt <= 0 || S.funds < 1 ? 'disabled' : ''}>Pay Max (${fmtMoney(Math.min(Math.floor(S.funds), S.debt))})</button>
       </div>
       <div class="sgrid" style="margin-top:12px">

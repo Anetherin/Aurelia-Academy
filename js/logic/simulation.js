@@ -95,7 +95,13 @@ function advanceTime(){
   const P_PROT = BAL.protocols;
   const protDef = (ACAD.protocols || []).find(p => p.id === S.selectedProtocol) || ACAD.protocols[0];
   let effectiveId = protDef.id;
-  if(effectiveId !== 'rest' && S.director.energy < (protDef.energy || 0)){
+  let periodMismatch = false;
+  if(isNightTransition){
+    effectiveId = 'rest';
+  } else if(Array.isArray(protDef.periods) && !protDef.periods.includes(time)){
+    effectiveId = 'rest';
+    periodMismatch = true;
+  } else if(effectiveId !== 'rest' && S.director.energy < (protDef.energy || 0)){
     effectiveId = 'rest';
     S.selectedProtocol = 'rest';
     logEvent(`DIRECTOR: Insufficient stamina for "${protDef.name}". Forced into Director's Recess.`, 'warning');
@@ -210,10 +216,15 @@ function advanceTime(){
         : 'Reviewed tonight\'s high-society guest list ahead of Nightfall operations.'
     });
   } else {
+    const restMsg = isNightTransition
+      ? 'You retired for the night (+35 Director Stamina).'
+      : periodMismatch
+        ? `${protDef.name} only runs during ${protDef.periods.join('/')} — took Director's Recess instead (+35 Stamina).`
+        : 'You stepped back to recover your stamina (+35 Energy).';
     addHL({
       kind: 'protocol',
-      title: "Executive Protocol: Director's Recess",
-      text: 'You stepped back to recover your stamina (+35 Energy).'
+      title: isNightTransition ? 'Executive Protocol: Night Rest' : "Executive Protocol: Director's Recess",
+      text: restMsg
     });
   }
 
@@ -560,22 +571,33 @@ function advanceTime(){
       S.students.forEach(st => { st.year = (st.year || 1) + 1; });
       logEvent(`ACADEMIC YEAR ${S.year}: Returning students advanced a year.`, 'success');
     }
-    if(newTerm !== S.term || newYear > 1 && dayInYear === 0){
+    if(newTerm !== S.term || (newYear > 1 && dayInYear === 0)){
       S.term = newTerm;
+      S.semesterRefreshed = false;
       S.applicants = generateApplicants();
       logEvent(`NEW SEMESTER (Year ${S.year} Term ${S.term}): Fresh admissions dossiers arrived.`, 'info');
     }
 
-    // Weekly interest every 7 days
+    // Weekly interest every 7 days (after grace period)
     if(prevDay % 7 === 0 && S.debt > 0 && !S.won){
-      const interest = applyWeeklyInterest();
-      if(interest > 0){
+      const grace = BAL.economy.interestGraceDays || 0;
+      if(prevDay <= grace){
         addHL({
           kind: 'interest',
-          title: `Weekly Debt Interest (+${fmtMoney(interest)})`,
-          text: `The credit syndicate applied ${(BAL.economy.weeklyInterestRate * 100).toFixed(1)}% weekly interest. Debt now stands at ${fmtMoney(S.debt)}.`
+          title: 'Grace Period Ending',
+          text: `Your ${grace}-day interest-free grace period has ended. Weekly ${(BAL.economy.weeklyInterestRate * 100).toFixed(1)}% debt interest begins next week.`
         });
-        logEvent(`INTEREST: +${fmtMoney(interest)} added to Academy debt (Total: ${fmtMoney(S.debt)}).`, 'warning');
+        logEvent(`GRACE PERIOD: No interest charged on Day ${prevDay}. Weekly ${(BAL.economy.weeklyInterestRate * 100).toFixed(1)}% interest begins next week.`, 'warning');
+      } else {
+        const interest = applyWeeklyInterest();
+        if(interest > 0){
+          addHL({
+            kind: 'interest',
+            title: `Weekly Debt Interest (+${fmtMoney(interest)})`,
+            text: `The credit syndicate applied ${(BAL.economy.weeklyInterestRate * 100).toFixed(1)}% weekly interest. Debt now stands at ${fmtMoney(S.debt)}.`
+          });
+          logEvent(`INTEREST: +${fmtMoney(interest)} added to Academy debt (Total: ${fmtMoney(S.debt)}).`, 'warning');
+        }
       }
     }
 
@@ -598,5 +620,13 @@ function advanceTime(){
 
   save();
   render();
+  if(isNightTransition){
+    const nv = highlights.some(h => h.kind === 'night_visit');
+    toast(`Day ${S.day} begins${nv ? ' · Night Visit logged' : ''}`);
+  } else if(time === 'Evening'){
+    toast(`Evening D${prevDay} complete · ${net >= 0 ? '+' : ''}${fmtMoney(net)} net`);
+  } else {
+    toast(`${time} D${prevDay} complete${totalIncome ? ' · +' + fmtMoney(totalIncome) : ''}`);
+  }
   if(S.over) showGameOverModal();
 }
