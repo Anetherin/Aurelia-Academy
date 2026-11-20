@@ -1,0 +1,165 @@
+{
+  "_readme": [
+    "Scene composition definitions for programmatic image prompt assembly (js/logic/prompts.js).",
+    "Strict adult-only phrasing: every person tag explicitly specifies adult."
+  ],
+  "people": {
+    "solo": "1 adult woman, solo",
+    "with_man": "1 adult woman and 1 adult man",
+    "pov": "1 adult woman, first-person viewer perspective"
+  },
+  "clientPhrase": "an anonymous well-dressed adult male patron in shadow",
+  "directorPhrase": "a commanding adult male academy director in a tailored dark suit",
+  "scenes": {
+    "portrait": {
+      "label": "Academy Portrait",
+      "comp": "solo",
+      "setting": "gothic stone academy courtyard at dusk, wrought-iron lanterns, dramatic architectural shadows",
+      "cloth": "dressed",
+      "outfitSlot": "class",
+      "pose": "confident upper-body portrait framing, looking toward the viewer"
+    },
+    "class_Academics": {
+      "label": "Morning Lecture",
+      "comp": "solo",
+      "setting": "grand wood-paneled academy lecture hall, tall arched windows, leather-bound books on desk",
+      "cloth": "dressed",
+      "outfitSlot": "class",
+      "pose": "sitting gracefully at a polished oak desk with open notebooks"
+    },
+    "class_PE": {
+      "label": "Athletic Center",
+      "comp": "solo",
+      "setting": "sleek private academy gymnasium with polished timber floors and moody skylight",
+      "cloth": "dressed",
+      "outfitSlot": "athletic",
+      "pose": "stretching gracefully after conditioning drills, faint sheen of sweat"
+    },
+    "class_Performance": {
+      "label": "Stage Rehearsal",
+      "comp": "solo",
+      "setting": "velvet-draped rehearsal studio with tall mirrors and warm stage spotlights",
+      "cloth": "dressed",
+      "outfitSlot": "dancer",
+      "pose": "mid-rehearsal poise beneath a golden spotlight"
+    },
+    "class_Seduction": {
+      "label": "Beauty Salon",
+      "comp": "solo",
+      "setting": "opulent velvet salon lounge with gilded mirrors, perfume bottles, and amber lamps",
+      "cloth": "partial",
+      "outfitSlot": "hostess",
+      "pose": "reclining on a velvet settee, practicing an alluring gaze"
+    },
+    "class_Intimacy": {
+      "label": "Intimacy Practicum",
+      "comp": "solo",
+      "setting": "candlelit private academy chamber with crimson curtains and silk cushions",
+      "cloth": "under",
+      "outfitSlot": "service",
+      "pose": "kneeling gracefully on velvet cushions, poised and attentive"
+    },
+    "class_Service": {
+      "label": "Service Practicum",
+      "comp": "solo",
+      "setting": "upscale private training suite with warm brass sconces and mahogany counter",
+      "cloth": "partial",
+      "outfitSlot": "service",
+      "pose": "standing attentively beside a low velvet table, poised expression"
+    },
+    "class_Rest": {
+      "label": "Academy Infirmary Lounge",
+      "comp": "solo",
+      "setting": "quiet sun-filtered dormitory sitting room with plush armchairs and tea tray",
+      "cloth": "dressed",
+      "outfitSlot": "rest",
+      "pose": "resting peacefully in a cushioned armchair with a cup of tea"
+    },
+    "job_Hostess": {
+      "label": "Nightfall VIP Hostess",
+      "comp": "with_man",
+      "setting": "dim neon-noir VIP lounge booth, crystal champagne glasses, deep indigo velvet seating",
+      "cloth": "dressed",
+      "outfitSlot": "hostess",
+      "pose": "leaning close beside the patron at a candlelit booth, charming smile"
+    },
+    "job_Bartender": {
+      "label": "Nightfall Cocktail Bar",
+      "comp": "solo",
+      "setting": "backlit mahogany nightclub bar with glowing amber liquor shelves and neon reflections",
+      "cloth": "dressed",
+      "outfitSlot": "bartender",
+      "pose": "pouring a glowing craft cocktail behind the bar, poised gaze"
+    },
+    "job_Dancer": {
+      "label": "Nightfall Spotlight Stage",
+      "comp": "solo",
+      "setting": "dramatic nightclub stage bathed in indigo and rose spotlights, smoky air",
+      "cloth": "dressed",
+      "outfitSlot": "dancer",
+      "pose": "performing an expressive, sensual dance mid-motion under stage lights"
+    },
+    "job_Singer": {
+      "label": "Nightfall Vocal Stage",
+      "comp": "solo",
+      "setting": "intimate jazz-noir nightclub stage with vintage brass microphone and soft gold rim light",
+      "cloth": "dressed",
+      "outfitSlot": "singer",
+      "pose": "singing close into a classic microphone, eyes half-lidded and captivating"
+    },
+    "job_Security": {
+      "label": "VIP Floor Security",
+      "comp": "solo",
+      "setting": "shadowed velvet corridor overlooking the Nightfall VIP gallery, indigo neon accents",
+      "cloth": "dressed",
+      "outfitSlot": "security",
+      "pose": "standing watch with calm authority, sharp observant gaze"
+    },
+    "job_Private_Service": {
+      "label": "Nightfall Private Suite",
+      "comp": "with_man",
+      "setting": "luxurious private velvet suite with dim warm sconces, silk sheets, and locked double doors",
+      "cloth": "partial",
+      "outfitSlot": "service",
+      "intimate": true,
+      "pose": "attending closely to the patron inside the dimly lit private suite"
+    },
+    "night_rest": {
+      "label": "Dormitory Rest",
+      "comp": "solo",
+      "setting": "cozy dark-wood dormitory bedroom lit by soft moonlight and bedside lamp",
+      "cloth": "sleepwear",
+      "outfitSlot": "rest",
+      "pose": "relaxing on silk bedding in the quiet night"
+    },
+    "night_visit": {
+      "label": "Director's Private Visit",
+      "comp": "pov",
+      "setting": "shadowy executive study after hours, mahogany desk, fireplace glow, rain on tall windows",
+      "cloth": "under",
+      "outfitSlot": "service",
+      "pov": true,
+      "intimate": true,
+      "pose": "straddling the edge of the mahogany desk, flushed and looking straight into the viewer's eyes"
+    },
+    "counseling": {
+      "label": "Targeted Counseling",
+      "comp": "pov",
+      "setting": "quiet executive office with leather armchairs and warm desk lamp",
+      "cloth": "dressed",
+      "outfitSlot": "class",
+      "pov": true,
+      "pose": "seated across from the viewer, composed yet attentive"
+    },
+    "intimate_guidance": {
+      "label": "Intimate Guidance",
+      "comp": "pov",
+      "setting": "locked executive sanctuary behind heavy curtains, warm amber lamplight, deep shadows",
+      "cloth": "partial",
+      "outfitSlot": "service",
+      "pov": true,
+      "intimate": true,
+      "pose": "drawn close in private submission, breathless expression looking up at the viewer"
+    }
+  }
+}

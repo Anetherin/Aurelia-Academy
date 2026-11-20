@@ -1,0 +1,35 @@
+{
+  "_readme": [
+    "Atmosphere, clothing state, and expression wording snippets used by js/logic/prompts.js."
+  ],
+  "scenes": {
+    "pov": "first-person viewer perspective, intimate close framing, moody warm shadows",
+    "class": "refined dark academia atmosphere, crisp architectural detail",
+    "club": "luxurious neon-noir nightclub atmosphere, rich indigo and amber lighting",
+    "private": "visceral intimate framing, dramatic chiaroscuro candlelight",
+    "rest": "soft moonlight, quiet stillness, warm fabrics"
+  },
+  "clothing": {
+    "dressed": "wearing {outfit}",
+    "partial": "wearing {outfit}, clothing loosened and askew, revealing {underwear} underneath",
+    "partial_tease": "wearing {outfit}, slipped off one shoulder with the hem raised teasingly over {underwear}",
+    "under": "wearing only {underwear}",
+    "under_tease": "wearing only {underwear}, her discarded {outfit} draped nearby",
+    "nude": "completely nude, bare breasts, {pubic}",
+    "nude_tease": "completely nude, artfully posed, {pubic}",
+    "sleepwear": "wearing {outfit}",
+    "pubic": "natural {hair} pubic hair"
+  },
+  "expressions": {
+    "Fail": "tense, overwhelmed expression, averted eyes, stiff posture",
+    "Poor": "reluctant, guarded expression, strained composure",
+    "Decent": "calm, practiced smile, attentive eyes",
+    "Good": "flushed cheeks, parted lips, eager heated gaze",
+    "Excellent": "deeply flushed face, glazed half-lidded eyes, breathless parted lips",
+    "composed": "poised, enigmatic expression",
+    "eager": "warm flushed smile, bright attentive eyes",
+    "lost": "breathless flushed expression, heavy-lidded eyes",
+    "defiant": "sharp, guarded gaze, chin lifted slightly",
+    "alluring": "soft sultry smirk, lingering eye contact"
+  }
+}

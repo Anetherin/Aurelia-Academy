@@ -1,0 +1,11 @@
+{
+  "_readme": [
+    "Opt-in Perchance AI text prompt templates (data/ai-prompts.json -> js/logic/ai.js).",
+    "Placeholders: {name} {age} {appearance} {clothing} {outfit} {traits} {major} {compliance} {depravity} {arousal} {lust} {director} {service} {tier} {setting} {situation} {backstory} {guidance}"
+  ],
+  "guidance": "Use vivid, grounded physical detail, dark-academia noir tension, and natural dialogue fitting her traits. All characters are consenting adults. Avoid modern internet slang or meta-commentary.",
+  "night_visit": "Write a visceral, explicit erotic scene (100-140 words, second person 'you', present tense) for a dark-academia management game. You are Director {director} of Aurelia Academy during a late-night private session in your study with adult student {name} ({age} years old; traits: {traits}). Appearance: {appearance}, wearing {clothing}. Her arousal is {arousal}/100, compliance is {compliance}/100, and depravity is {depravity}/100. {guidance} Always address the player as 'you'. Output only the scene.",
+  "service": "Write a short, explicit erotic scene (100-130 words, third person, past tense) for a dark neon-noir club management game. Adult student {name} ({age}; traits: {traits}; {appearance}, wearing {clothing}) is performing {service} for a VIP patron at Nightfall Club. Setting: {setting}. Outcome tier: {tier}. Keep the patron anonymous and keep focus on {name}, her physical sensations, and her shifting attitude (depravity {depravity}/100, lust skill {lust}/100). {guidance} Output only the scene.",
+  "protocol": "Write a short dramatic scene (100-130 words, second person 'you', present tense) between Director {director} and adult student {name} ({age}; traits: {traits}; {appearance}, wearing {clothing}). Context: {situation}. Compliance: {compliance}/100, Arousal: {arousal}/100. {guidance} Always address the player as 'you'. Output only the scene.",
+  "backstory": "Write a concise 3-4 sentence noir dossier backstory for {name}, an adult ({age}-year-old) {major} student entering Aurelia Academy. Appearance: {appearance}. Traits: {traits}. Existing note: {backstory}. Keep it grounded and atmospheric, third person, no lists. Output only the backstory."
+}

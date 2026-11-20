@@ -1,0 +1,290 @@
+{
+  "_readme": [
+    "Procedural generation pools for Aurelia Academy students: names, appearance descriptors, outfits & lingerie, 22 traits with sensory prose & mechanical fx, and background templates.",
+    "Every outfit uses adult university/finishing-academy attire (never youth-coded wording)."
+  ],
+  "firstNames": [
+    "Aiko", "Elena", "Sasha", "Luna", "Yuki", "Mei", "Clara", "Isabella", "Mina", "Seraphina",
+    "Chloe", "Sofia", "Hana", "Elara", "Nadia", "Valeria", "Kiana", "Jasmine", "Lydia", "Rhea",
+    "Noemi", "Zara", "Ingrid", "Siofra", "Ember", "Xanthe", "Freyja", "Amara", "Yuna", "Layla"
+  ],
+  "lastNames": [
+    "Vance", "Kuroki", "Belmont", "Zhang", "Novak", "Moretti", "Dupont", "Sato", "Sterling", "Kovalenko",
+    "Ivers", "Aris", "Watanabe", "Chen", "Muller", "O'Neill", "Bianchi", "Katsaros", "Hawthorne", "Silva",
+    "Leclair", "Russo", "Vega", "Kim", "Tanaka", "Mendez", "Park", "Fischer", "Rossi", "Wagner"
+  ],
+  "hairColors": [
+    "ink black", "platinum blonde", "chestnut brown", "fiery red",
+    "ash grey", "deep violet", "golden silk", "emerald green"
+  ],
+  "hairStyles": [
+    "long sleek hair", "soft wavy hair", "high polished ponytail", "elegant braided updo",
+    "chin-length bob cut", "long layered hair framing her face", "loose flowing curls", "low chignon"
+  ],
+  "eyeColors": [
+    "amber", "azure blue", "jade green", "crimson",
+    "deep brown", "steel grey", "amethyst", "golden"
+  ],
+  "skinTones": [
+    "porcelain fair", "warm ivory", "soft olive", "golden tan", "warm bronze", "deep espresso"
+  ],
+  "builds": [
+    "slender", "lithe and toned", "curvy hourglass", "soft and full-figured", "tall and statuesque", "athletic"
+  ],
+  "favColors": [
+    "midnight indigo", "crimson", "ivory", "emerald", "obsidian black", "champagne gold", "burgundy", "silver"
+  ],
+  "features": [
+    "",
+    "",
+    "a small beauty mark beneath her left eye",
+    "delicate silver-rimmed glasses",
+    "a slender black velvet choker",
+    "faint freckles across the bridge of her nose",
+    "silver drop earrings",
+    "a delicate gold collar necklace"
+  ],
+  "busts": [
+    { "size": "AA", "weight": 5, "img": "small flat chest" },
+    { "size": "A", "weight": 12, "img": "petite breasts" },
+    { "size": "B", "weight": 25, "img": "" },
+    { "size": "C", "weight": 25, "img": "" },
+    { "size": "D", "weight": 18, "img": "full breasts" },
+    { "size": "DD", "weight": 8, "img": "large breasts" },
+    { "size": "E", "weight": 4, "img": "heavy voluptuous breasts" },
+    { "size": "F", "weight": 3, "img": "very large voluptuous breasts" }
+  ],
+  "outfits": {
+    "class": [
+      { "id": "blazer_skirt", "label": "Tailored Academy Blazer", "desc": "a tailored navy academy blazer over a crisp ivory silk blouse and dark pleated midi skirt" },
+      { "id": "tweed_suit", "label": "Ivory & Charcoal Suit", "desc": "a fitted charcoal vest and slim tailored trousers over a high-collar silk shirt" },
+      { "id": "knit_scholar", "label": "Dark Academia Coat", "desc": "a fitted burgundy cardigan over a collared blouse and high-waisted wool skirt" }
+    ],
+    "athletic": [
+      { "id": "gym_track", "label": "Fitted Training Wear", "desc": "a sleek black athletic tank top and high-waisted compression leggings" },
+      { "id": "fencing_cut", "label": "Academy Conditioning Set", "desc": "a fitted slate zip-up athletic top and dark training shorts" }
+    ],
+    "hostess": [
+      { "id": "velvet_cocktail", "label": "Midnight Cocktail Gown", "desc": "a sleek midnight-indigo satin cocktail dress with a high thigh slit" },
+      { "id": "satin_halter", "label": "Crimson Halter Dress", "desc": "a form-fitting crimson satin halter dress with an open back" },
+      { "id": "gold_sheath", "label": "Champagne Evening Dress", "desc": "a shimmering champagne-gold evening sheath dress hugging her curves" }
+    ],
+    "bartender": [
+      { "id": "bar_vest", "label": "Tailored Sommelier Vest", "desc": "a tailored black waistcoat with silver buttons over a crisp silk shirt with rolled sleeves and slim trousers" },
+      { "id": "bar_apron", "label": "Mixologist Ensemble", "desc": "a fitted burgundy vest, slender tie, and tailored dark skirt" }
+    ],
+    "dancer": [
+      { "id": "silk_stage", "label": "Silk Stage Costume", "desc": "a dazzling sequined two-piece stage costume with flowing chiffon ribbons" },
+      { "id": "cabaret_corset", "label": "Velvet Cabaret Set", "desc": "an embroidered midnight-velvet stage corset and sheer layered dance skirt" }
+    ],
+    "singer": [
+      { "id": "jazz_gown", "label": "Floor-Length Stage Gown", "desc": "a dramatic obsidian velvet floor-length evening gown with bare shoulders" },
+      { "id": "pearl_dress", "label": "Chandelier Silk Gown", "desc": "a deep emerald silk gown accented with delicate pearl straps" }
+    ],
+    "security": [
+      { "id": "exec_guard", "label": "VIP Floor Suit", "desc": "a sharp black tailored suit jacket over a fitted dark turtleneck and tactical slacks" },
+      { "id": "leather_trench", "label": "Nightfall Enforcer Coat", "desc": "a fitted dark leather blazer over a charcoal shirt and sleek trousers" }
+    ],
+    "service": [
+      { "id": "sheer_chemise", "label": "Silk VIP Chemise", "desc": "a sheer {color} silk slip dress with delicate lace trim and thin straps" },
+      { "id": "corset_robe", "label": "Velvet Suite Negligee", "desc": "a translucent {color} chiffon robe belted loosely over a satin chemise" }
+    ],
+    "rest": [
+      { "id": "silk_pj", "label": "Silk Sleepwear", "desc": "a soft {color} satin camisole and matching silk lounge shorts" },
+      { "id": "satin_robe", "label": "Midnight Lounge Robe", "desc": "a smooth {color} silk kimono robe loosely tied at the waist" }
+    ]
+  },
+  "underwear": [
+    { "id": "lace_set", "label": "Delicate Lace Lingerie", "desc": "a matching {color} sheer lace bra and panties" },
+    { "id": "satin_garter", "label": "Satin Garter Set", "desc": "{color} satin lingerie with thigh-high stockings and garter straps" },
+    { "id": "silk_bralette", "label": "Silk Bralette Set", "desc": "a delicate {color} silk bralette and high-cut briefs" }
+  ],
+  "traits": {
+    "Diligent": {
+      "desc": [
+        "She is often the last to leave the study halls, her fingers stained with ink and her posture perfectly upright.",
+        "She keeps a meticulous schedule, checking her watch with a sharp, disciplined frequency."
+      ],
+      "summary": "+15% class skill gains",
+      "fx": { "classMul": 1.15 }
+    },
+    "Rebellious": {
+      "desc": [
+        "She has a habit of adjusting her uniform to be just slightly out of regulation, a silent challenge to authority.",
+        "Her gaze is often defiant, lingering a second too long on her superiors before she scoffs and turns away."
+      ],
+      "summary": "-15% compliance gain, +15% security performance",
+      "fx": { "compMul": 0.85, "secMul": 1.15 }
+    },
+    "Charismatic": {
+      "desc": [
+        "She commands the room effortlessly, her laughter drawing people in like a magnetic force.",
+        "There is a natural warmth to her gestures that makes even strangers feel like they've known her for years."
+      ],
+      "summary": "+20% club tips",
+      "fx": { "tipMul": 1.2 }
+    },
+    "Anxious": {
+      "desc": [
+        "She frequently toys with the hem of her skirt or the ends of her hair when addressed directly.",
+        "Her eyes dart around the room as if searching for an exit, her breathing shallow and controlled."
+      ],
+      "summary": "+15% fatigue accumulation, +10% compliance gain",
+      "fx": { "fatigueMul": 1.15, "compMul": 1.1 }
+    },
+    "Determined": {
+      "desc": [
+        "There is a hardness to her jawline that suggests she will weather any storm to reach her objective.",
+        "She rarely speaks of failure, treating every setback as merely another data point in her eventual success."
+      ],
+      "summary": "-15% fatigue accumulation, +10% class skill gains",
+      "fx": { "fatigueMul": 0.85, "classMul": 1.1 }
+    },
+    "Sultry": {
+      "desc": [
+        "Every movement she makes seems deliberately slow and liquid, drawing the eye to the curve of her hips.",
+        "She has a way of lowering her voice to a suggestive whisper that makes the most mundane conversation feel intimate."
+      ],
+      "summary": "+15% VIP revenue, +1.5 arousal per period",
+      "fx": { "revMul": 1.15, "arousalAdd": 1.5 }
+    },
+    "Graceful": {
+      "desc": [
+        "She moves through the academy halls as if floating, her steps making almost no sound on the stone floors.",
+        "Her posture is consistently elegant, reminiscent of a prima ballerina even when she is simply sitting at rest."
+      ],
+      "summary": "+15% tips, +10% stage & hostess gains",
+      "fx": { "tipMul": 1.15, "classMul": 1.1 }
+    },
+    "Stoic": {
+      "desc": [
+        "Her face is a mask of cool indifference, rarely betraying a hint of her internal state.",
+        "She accepts both praise and punishment with the same steady, unblinking composure."
+      ],
+      "summary": "-20% fatigue accumulation, -1.0 arousal per period",
+      "fx": { "fatigueMul": 0.8, "arousalAdd": -1.0 }
+    },
+    "Playful": {
+      "desc": [
+        "She often has a mischievous glint in her eyes, as if she's sharing a private joke with the world.",
+        "Her conversation is peppered with lighthearted teasing and sudden, infectious bursts of energy."
+      ],
+      "summary": "+15% tips, +10% lust growth",
+      "fx": { "tipMul": 1.15, "lustMul": 1.1 }
+    },
+    "Cunning": {
+      "desc": [
+        "She listens more than she speaks, her sharp eyes always calculating the best way to leverage a situation.",
+        "There is a subtle, predatory edge to her smile that suggests she is always three steps ahead of everyone else."
+      ],
+      "summary": "+20% base revenue, +10% tips",
+      "fx": { "revMul": 1.2, "tipMul": 1.1 }
+    },
+    "Naive": {
+      "desc": [
+        "She possesses a wide-eyed wonder about the academy that is both endearing and dangerously vulnerable.",
+        "She often takes words at face value, lacking the cynical filter that protects most girls in her position."
+      ],
+      "summary": "+20% compliance gain, +20% depravity gain",
+      "fx": { "compMul": 1.2, "depravityMul": 1.2 }
+    },
+    "Perfectionist": {
+      "desc": [
+        "She is never satisfied with 'good enough,' often redoing tasks until they meet her impossible internal standards.",
+        "Even the slightest smudge on her notes or a stray hair in her mirror is enough to cause her visible distress."
+      ],
+      "summary": "+20% class skill gains, +10% fatigue",
+      "fx": { "classMul": 1.2, "fatigueMul": 1.1 }
+    },
+    "Impulsive": {
+      "desc": [
+        "She tends to act on her first instinct, rarely pausing to consider the long-term consequences of her whims.",
+        "Her energy is chaotic and unpredictable, shifting from intense focus to wild distraction in a heartbeat."
+      ],
+      "summary": "+2.0 arousal per period, +15% lust growth",
+      "fx": { "arousalAdd": 2.0, "lustMul": 1.15 }
+    },
+    "Eloquent": {
+      "desc": [
+        "She speaks with a melodic, sophisticated cadence that makes listening to her an effortless pleasure.",
+        "Her vocabulary is vast and precise, allowing her to navigate complex social situations with total verbal mastery."
+      ],
+      "summary": "+20% tips, +10% class gains",
+      "fx": { "tipMul": 1.2, "classMul": 1.1 }
+    },
+    "Shy": {
+      "desc": [
+        "She often hides behind a curtain of hair, speaking in a voice so soft it requires leaning in to hear.",
+        "She blushes easily when complimented, her entire frame shrinking as she tries to avoid the spotlight."
+      ],
+      "summary": "+15% compliance gain, -10% tips",
+      "fx": { "compMul": 1.15, "tipMul": 0.9 }
+    },
+    "Ambitious": {
+      "desc": [
+        "She views every peer as a competitor and every lecture as a stepping stone to a higher social caste.",
+        "She is constantly inquiring about the 'VIP' tiers of the academy, her hunger for status clearly visible."
+      ],
+      "summary": "+15% revenue, +10% class gains",
+      "fx": { "revMul": 1.15, "classMul": 1.1 }
+    },
+    "Melancholic": {
+      "desc": [
+        "There is a persistent, elegant sadness in her expression, as if she is mourning a life she never quite had.",
+        "She often seeks out quiet, shadowed corners of the academy, staring out at the rain with a heavy, pensive air."
+      ],
+      "summary": "+10% compliance gain, +10% tips",
+      "fx": { "compMul": 1.1, "tipMul": 1.1 }
+    },
+    "Altruistic": {
+      "desc": [
+        "She is frequently found assisting other students with their burdens, often at the expense of her own rest.",
+        "Her kindness feels genuine and rare in this environment, making her a natural confidante for the others."
+      ],
+      "summary": "+15% compliance gain, +10% fatigue",
+      "fx": { "compMul": 1.15, "fatigueMul": 1.1 }
+    },
+    "Vain": {
+      "desc": [
+        "She is seldom seen without a mirror in hand, constantly adjusting her appearance to maintain a flawless facade.",
+        "She expects and demands attention, visibly wilting if she isn't the most admired person in the room."
+      ],
+      "summary": "+25% tips, -10% compliance gain",
+      "fx": { "tipMul": 1.25, "compMul": 0.9 }
+    },
+    "Frugal": {
+      "desc": [
+        "She counts her credits with a frantic intensity, hoarding even the smallest tips for some unspoken future goal.",
+        "She takes meticulous care of her belongings, knowing exactly how much it would cost to replace even a simple pen."
+      ],
+      "summary": "+15% base revenue",
+      "fx": { "revMul": 1.15 }
+    },
+    "Observant": {
+      "desc": [
+        "She notices the smallest details—a flickering lamp, a nervous tic—long before anyone else in the room.",
+        "She rarely engages in gossip herself, but she seems to know everyone's secrets just by watching them."
+      ],
+      "summary": "+15% security & class gains",
+      "fx": { "secMul": 1.15, "classMul": 1.15 }
+    },
+    "Stubborn": {
+      "desc": [
+        "Once she has made up her mind, no amount of reasoning or authority can sway her from her chosen path.",
+        "She will dig her heels in on principle alone, preferring a difficult failure to an easy compromise."
+      ],
+      "summary": "-20% compliance gain, -15% fatigue",
+      "fx": { "compMul": 0.8, "fatigueMul": 0.85 }
+    }
+  },
+  "backgrounds": [
+    "A former scholarship student from the outer districts. Her family's business collapsed under the weight of city taxes, leaving her as the sole provider. She views Aurelia not as a school, but as a high-stakes gamble for her future survival.",
+    "The disowned daughter of a merchant prince. She was raised in luxury but cast out after a scandalous affair with a commoner. She has nothing left but her pride and the refined manners that are now her only currency.",
+    "An aspiring stage performer who found the city's theaters closed to those without a patron. She heard that Aurelia Academy could turn a simple dancer into a muse for the elite, and she is willing to pay the price in blood and sweat.",
+    "A street-smart drifter who spent her youth navigating the city's neon-lit slums. She was caught attempting to pick the pocket of an Academy recruiter, who saw potential in her sharp wits and desperate hunger for a better life.",
+    "The survivor of a fallen noble house from the northern territories. Her lineage is ancient but her coffers are empty. She seeks to use the Academy's social polishing to marry back into the status her family lost to war.",
+    "A brilliant but impoverished academic who was expelled from the State University for 'unorthodox' research. She needs the Academy's resources—and the funds from its nightlife operations—to continue her forbidden studies.",
+    "Escaped from a stifling religious commune on the city's edge. To her, the Academy's depravity is a form of liberation she is still trying to understand, viewing every new experience with a mixture of fear and intoxicating curiosity.",
+    "A former corporate intern who was framed for a high-level embezzlement scheme. With a massive debt now assigned to her name by the courts, she fled to Aurelia as the only place where she could 'earn' her way back to a clean slate."
+  ]
+}

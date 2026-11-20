@@ -1,0 +1,138 @@
+{
+  "_readme": [
+    "Tuning numbers for Aurelia Academy's economy, daily 4-period simulation, fatigue/arousal, ranks, service tiers, and Director protocols.",
+    "ranks: [RankLabel, minAvgAptitude] sorted highest to lowest.",
+    "tiers: minScore thresholds and revenue/tip multipliers for club shifts and VIP encounters."
+  ],
+  "economy": {
+    "initialDebt": 2000000,
+    "initialFunds": 12000,
+    "maxYears": 4,
+    "daysPerYear": 100,
+    "semesterDays": 50,
+    "weeklyInterestRate": 0.025,
+    "facilityCostMult": 2.8,
+    "researcherDiscount": 0.2,
+    "dailyUpkeepBase": 120,
+    "dailyUpkeepPerStudent": 50,
+    "managerRevenueBonus": 0.25,
+    "academicIntBonus": 0.5,
+    "recruiterQualityBonus": 15,
+    "recruiterExtraApplicants": 4,
+    "applicantRefreshCost": 500,
+    "nobleTipBonus": 0.1,
+    "refinementTipScale": 0.005,
+    "infamyRevenueScale": 0.004
+  },
+  "fatigue": {
+    "classGain": 10,
+    "patronGain": 12,
+    "supportRoleGain": 16,
+    "eveningRestRecovery": 14,
+    "studyRestRecovery": 20,
+    "nightRecoveryBase": 14,
+    "nightRecoveryPerLevel": 8,
+    "collapseThreshold": 95,
+    "collapseRecovery": 35,
+    "collapseCompliancePenalty": 4
+  },
+  "arousal": {
+    "baseTick": 1.5,
+    "libidoDiv": 25,
+    "seductionClassBonus": 3,
+    "intimacyClassBonus": 4,
+    "restDrop": 8,
+    "nightVisitThreshold": 70,
+    "nightVisitDrop": 70,
+    "nightVisitMin": 10,
+    "nightVisitComplianceGain": 6,
+    "nightVisitLustGain": 4,
+    "nightVisitDepravityGain": 2
+  },
+  "reputation": {
+    "startAcademic": 10,
+    "startRefinement": 10,
+    "startInfamy": 0,
+    "decayAcademic": 0.05,
+    "decayRefinement": 0.05,
+    "decayInfamy": 0.06,
+    "incidentBaseChance": 0.08,
+    "incidentPerInfamy": 0.006,
+    "incidentMaxChance": 0.65,
+    "incidentPenaltyBase": 220,
+    "incidentPenaltyPerInfamy": 6
+  },
+  "ranks": [
+    ["SSS", 98],
+    ["SS", 91],
+    ["S", 81],
+    ["A", 66],
+    ["B", 46],
+    ["C", 26],
+    ["D", 11],
+    ["E", 0]
+  ],
+  "tiers": {
+    "thresholds": {
+      "Excellent": 85,
+      "Good": 65,
+      "Decent": 40,
+      "Poor": 20,
+      "Fail": 0
+    },
+    "revenueMult": {
+      "Fail": 0,
+      "Poor": 0.5,
+      "Decent": 1.0,
+      "Good": 2.0,
+      "Excellent": 3.5
+    },
+    "tipMult": {
+      "Fail": 0,
+      "Poor": 0.2,
+      "Decent": 1.0,
+      "Good": 2.5,
+      "Excellent": 6.0
+    }
+  },
+  "protocols": {
+    "rest": {
+      "energy": -35
+    },
+    "hall_walk": {
+      "energy": 15,
+      "compliance": 1.5,
+      "arousal": 3
+    },
+    "lead_seminar": {
+      "energy": 40,
+      "skillBonus": 3.5,
+      "acadRep": 1.5
+    },
+    "city_work": {
+      "energy": 45,
+      "basePay": 650,
+      "intPay": 14,
+      "acadPay": 8
+    },
+    "personal_counseling": {
+      "energy": 25,
+      "fatigueCut": 28,
+      "compliance": 5
+    },
+    "vip_filtering": {
+      "energy": 25,
+      "tipBonus": 0.35,
+      "extraPatron": 1,
+      "incidentCut": 0.35
+    },
+    "intimate_guidance": {
+      "energy": 50,
+      "lust": 8,
+      "compliance": 7,
+      "seduction": 5,
+      "arousal": 20,
+      "depravity": 3
+    }
+  }
+}
