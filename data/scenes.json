@@ -133,14 +133,54 @@
       "pose": "relaxing on silk bedding in the quiet night"
     },
     "night_visit": {
-      "label": "Director's Private Visit",
+      "label": "Director's Private Visit (Tease)",
       "comp": "pov",
       "setting": "shadowy executive study after hours, mahogany desk, fireplace glow, rain on tall windows",
-      "cloth": "under",
+      "cloth": "partial",
       "outfitSlot": "service",
       "pov": true,
       "intimate": true,
       "pose": "straddling the edge of the mahogany desk, flushed and looking straight into the viewer's eyes"
+    },
+    "night_visit_manual": {
+      "label": "Night Visit: Hands-On",
+      "comp": "pov",
+      "setting": "shadowy executive study after hours, leather armchair beside a warm fireplace, drawn velvet curtains",
+      "cloth": "under",
+      "outfitSlot": "service",
+      "pov": true,
+      "intimate": true,
+      "pose": "kneeling beside the leather chair, leaning close with heated focus and looking up at the viewer"
+    },
+    "night_visit_oral": {
+      "label": "Night Visit: Kneeling Devotion",
+      "comp": "pov",
+      "setting": "beneath a carved mahogany executive desk on a plush Persian rug, warm amber fireplace light",
+      "cloth": "under",
+      "outfitSlot": "service",
+      "pov": true,
+      "intimate": true,
+      "pose": "kneeling intimately between the viewer's knees under the desk, looking straight up with parted lips"
+    },
+    "night_visit_vaginal": {
+      "label": "Night Visit: Full Surrender",
+      "comp": "pov",
+      "setting": "executive sanctuary sofa beside glowing embers, rain-streaked tall gothic windows, deep warm shadows",
+      "cloth": "nude",
+      "outfitSlot": "service",
+      "pov": true,
+      "intimate": true,
+      "pose": "riding astride the viewer in intimate cowgirl position, hands braced on shoulders, breathless gaze"
+    },
+    "night_visit_anal": {
+      "label": "Night Visit: Total Submission",
+      "comp": "pov",
+      "setting": "locked executive study at midnight, dim amber sconce light over a dark mahogany desk",
+      "cloth": "nude",
+      "outfitSlot": "service",
+      "pov": true,
+      "intimate": true,
+      "pose": "bent gracefully forward over the mahogany desk, looking back over her shoulder with heavy-lidded submission"
     },
     "counseling": {
       "label": "Targeted Counseling",

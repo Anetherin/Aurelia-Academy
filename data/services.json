@@ -439,5 +439,97 @@
       "A belligerent VIP shattered crystal glassware and caused a scene in the lounge, costing {penalty} in damages and hush money.",
       "City rumors flared after a drunken patron stumbled out of a side exit loud-mouthed, costing {penalty} in quiet payoffs."
     ]
+  },
+  "nightVisits": {
+    "tease": {
+      "id": "tease",
+      "label": "Private Tension (Suggestive)",
+      "depravityMin": 0,
+      "complianceMin": 0,
+      "scene": "night_visit",
+      "cloth": "partial",
+      "activity": "sensual teasing and close-quarters tension",
+      "rewards": { "compliance": 5, "lust": 3, "depravity": 2, "seduction": 2 },
+      "suggestive": [
+        "{name} tapped softly on your study door after curfew, lingering by the mahogany desk with flushed cheeks. Beneath the amber lamp, the air grew thick with unspoken tension until you finally dismissed her back to the dorms.",
+        "{name} slipped into your office after lights out on the pretext of extra guidance. She leaned close over your chair, her perfume and racing pulse saying everything words left unsaid before the night ended behind closed curtains."
+      ],
+      "explicit": [
+        "{name} slipped into your executive study after curfew with her blouse unfastened, straddling the edge of your mahogany desk. She pressed herself tight against your palms, letting you tease every inch of her flushed skin until she trembled on the brink.",
+        "{name} knocked softly after hours and let her cardigan fall from her shoulders. She guided your hands over her bare thighs and arched into your touch, trading breathless whispers in the firelight until neither of you cared about the hour."
+      ]
+    },
+    "manual": {
+      "id": "manual",
+      "label": "Hands-On Devotion",
+      "depravityMin": 10,
+      "complianceMin": 45,
+      "scene": "night_visit_manual",
+      "cloth": "under",
+      "activity": "hands-on manual intimacy",
+      "rewards": { "compliance": 6, "lust": 4, "depravity": 3, "skill": "manual_service", "skillGain": 2 },
+      "suggestive": [
+        "{name} entered your study in delicate lingerie after midnight, kneeling beside your leather chair. Her hands worked with steady, devoted focus as the fireplace dimmed, leaving both of you breathless.",
+        "After curfew, {name} slipped quietly behind your desk and took matters into her own warm palms. She followed every subtle instruction from Director {director} with eager obedience before returning to her dormitory."
+      ],
+      "explicit": [
+        "{name} slipped into your study wearing only sheer lingerie and knelt beside your chair, sliding your belt open with trembling eagerness. She wrapped both oiled palms around your cock, stroking and milking you with focused devotion until you spilled warmly across her fingers.",
+        "{name} straddled your lap behind locked mahogany doors and drew your shaft from your trousers. With dark, lidded eyes locked onto yours, she worked your length at a teasing, relentless pace until you groaned and painted her chest."
+      ]
+    },
+    "oral": {
+      "id": "oral",
+      "label": "Kneeling Devotion",
+      "depravityMin": 20,
+      "complianceMin": 55,
+      "scene": "night_visit_oral",
+      "cloth": "under",
+      "activity": "kneeling oral devotion beneath the desk",
+      "rewards": { "compliance": 6, "lust": 5, "depravity": 3.5, "skill": "oral_service", "skillGain": 2.5 },
+      "suggestive": [
+        "{name} dropped to the Persian rug beneath your mahogany desk after lights out, resting her cheek against your knee. What followed in the warm shadows bound her obedience even tighter to Director {director}.",
+        "Late into the night, {name} slipped past your threshold and knelt without a word. Her breathless devotion in the quiet of your study left her knees weak and her pulse fluttering when she finally stood."
+      ],
+      "explicit": [
+        "{name} slid beneath your executive desk after curfew and parted your thighs with eager hands. She took your stiff cock deep between her slick lips, humming around your shaft and looking up at you with wet, worshipful eyes until she swallowed every warm drop.",
+        "{name} dropped to the velvet rug in her lingerie and took you to the base without hesitation. Her tongue swirled expertly along your underside while your fingers tangled in her hair, milking an explosive finish straight down her throat."
+      ]
+    },
+    "vaginal": {
+      "id": "vaginal",
+      "label": "Full Surrender",
+      "depravityMin": 35,
+      "complianceMin": 70,
+      "scene": "night_visit_vaginal",
+      "cloth": "nude",
+      "activity": "full intimate surrender across the executive study",
+      "rewards": { "compliance": 7, "lust": 6, "depravity": 4, "skill": "vaginal_service", "skillGain": 2.5 },
+      "suggestive": [
+        "{name} locked the heavy study doors behind her and shed every trace of restraint in the firelight. Yielding completely to Director {director} on the leather sofa, she stayed in your arms long into the quiet hours.",
+        "After midnight, {name} came to your quarters wanting nothing held back. Behind drawn velvet curtains, she surrendered completely to your embrace until exhaustion finally claimed her."
+      ],
+      "explicit": [
+        "{name} locked your study door, dropped her silk robe to the floor, and climbed astride your lap on the leather sofa. She sank down onto your cock with a long, shuddering gasp, riding you desperately until her inner walls clenched around a hot, deep release.",
+        "{name} swept the ledgers off your mahogany desk and pulled you between her bare thighs. She hooked her ankles behind your waist and begged you to take her harder, trembling in breathless afterglow as you filled her completely."
+      ]
+    },
+    "anal": {
+      "id": "anal",
+      "label": "Total Submission",
+      "depravityMin": 50,
+      "complianceMin": 85,
+      "scene": "night_visit_anal",
+      "cloth": "nude",
+      "activity": "total backdoor submission behind locked doors",
+      "rewards": { "compliance": 8, "lust": 7, "depravity": 5, "skill": "anal_service", "skillGain": 3 },
+      "suggestive": [
+        "{name} entered your sanctuary naked beneath an open silk robe, offering Director {director} her deepest and most unreserved submission. Whatever resistance remained vanished completely behind the locked doors of your study.",
+        "At the stroke of midnight, {name} presented herself before your hearth without a shred of hesitation. She accepted every demand you placed upon her, proving her total devotion before slipping back to the dorms."
+      ],
+      "explicit": [
+        "{name} bent smoothly over the edge of your mahogany desk completely nude, glancing back over her shoulder with glazed, submissive eyes. She breathed slowly as you pressed deep into her tightest passage, gasping and rocking back against your hips until you buried yourself to the hilt and finished deep inside.",
+        "{name} knelt naked across the cushions before the study hearth, parting herself eagerly for your touch. She took every deep, relentless thrust with breathless cries of surrender, trembling violently as you claimed her completely."
+      ]
+    }
   }
 }

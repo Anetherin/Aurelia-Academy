@@ -3,7 +3,10 @@
    STUDENT DOSSIER MODAL (Sheet, Dynamic Scene Viewer, Skill Breakdown)
    ===================================================================== */
 function sheetScenes(s){
-  const list = ['portrait', 'class_' + (s.classFocus || 'Academics')];
+  const list = ['portrait'];
+  ['class_' + (s.morningFocus || s.classFocus || 'Academics'), 'class_' + (s.afternoonFocus || s.classFocus || 'Academics')].forEach(key => {
+    if(!list.includes(key) && SCENES[key]) list.push(key);
+  });
   Object.keys(ACAD.classes).forEach(k => {
     const key = 'class_' + k;
     if(!list.includes(key) && SCENES[key]) list.push(key);
@@ -12,7 +15,7 @@ function sheetScenes(s){
     if(r.scene && !list.includes(r.scene)) list.push(r.scene);
   });
   Object.keys(SERVICES).forEach(id => list.push('svc:' + id));
-  list.push('counseling', 'intimate_guidance', 'night_visit');
+  list.push('counseling', 'intimate_guidance', 'night_visit', 'night_visit_manual', 'night_visit_oral', 'night_visit_vaginal', 'night_visit_anal');
   return list;
 }
 
@@ -37,6 +40,23 @@ function openSheet(id){
 
   const scenes = sheetScenes(s);
   const curScene = studentCurrentScene(s, S.time);
+  const curCloth = sceneInfo(curScene).cloth || 'dressed';
+  const curCached = IMGKEYS.has(imgKey(s, curScene, curCloth));
+  const savedFallback = studentSavedScene(s);
+
+  let initScene, initCloth;
+  if(curCached || SET.autoSceneChange){
+    initScene = curScene;
+    initCloth = curCloth;
+  } else if(savedFallback){
+    initScene = savedFallback.scene;
+    initCloth = savedFallback.cloth;
+  } else {
+    initScene = 'portrait';
+    initCloth = 'dressed';
+  }
+  if(!scenes.includes(initScene)) scenes.unshift(initScene);
+
   const nav = studentNav(s);
 
   modal(`${nav}
@@ -44,7 +64,7 @@ function openSheet(id){
       <div>
         <div class="row">
           <select id="sceneSel" onchange="fillCloth();sheetImg()">
-            ${scenes.map(k => `<option value="${esc(k)}" ${k === curScene ? 'selected' : ''}>${esc(sceneInfo(k).label)}</option>`).join('')}
+            ${scenes.map(k => `<option value="${esc(k)}" ${k === initScene ? 'selected' : ''}>${esc(sceneInfo(k).label)}</option>`).join('')}
           </select>
           <select id="clothSel" onchange="sheetImg()"></select>
         </div>
@@ -55,16 +75,25 @@ function openSheet(id){
 
   $('#modal').scrollTop = 0;
   SHEET = id;
-  fillCloth();
+  fillCloth(initCloth);
   refreshSheetInfo();
-  sheetImg(SET.autoPortrait ? 'auto' : undefined);
+
+  let initMode;
+  if(!savedFallback && !THUMBS[s.id]){
+    initMode = SET.autoPortrait ? 'auto' : 'manual';
+  } else if(SET.autoSceneChange){
+    initMode = SET.autoImg !== false ? 'auto' : 'manual';
+  } else {
+    initMode = 'manual';
+  }
+  sheetImg(initMode);
 }
 
-function fillCloth(){
+function fillCloth(preferredCloth){
   const s = S && S.students.find(x => x.id === SHEET);
   const sel = $('#sceneSel'), c = $('#clothSel');
   if(!s || !sel || !c) return;
-  const def = sceneInfo(sel.value).cloth || 'dressed';
+  const def = preferredCloth || sceneInfo(sel.value).cloth || 'dressed';
   c.innerHTML = CLOTH.map(x => `<option value="${x.id}" ${x.id === def ? 'selected' : ''}>${esc(x.label)}</option>`).join('');
 }
 
@@ -81,38 +110,56 @@ function refreshSheetInfo(){
 
   const coreSkills = ['knowledge', 'etiquette', 'fitness', 'conversation', 'singing', 'dancing', 'bartending', 'security', 'compliance', 'lust'];
   const svcSkills = ['seduction', 'massage', 'kissing', 'manual_service', 'oral_service', 'vaginal_service', 'anal_service'];
+  const mCls = (ACAD.classes[s.morningFocus] || ACAD.classes.Academics).label;
+  const aCls = (ACAD.classes[s.afternoonFocus] || ACAD.classes.Academics).label;
+  const eRole = (ACAD.roles[s.clubRole] || ACAD.roles.None).label;
 
   box.innerHTML = `<div class="status">
     <div class="row" style="justify-content:space-between">
-      <h3>${esc(s.name)} <span class="tag">RANK ${studentRank(s)}</span></h3>
-      <span class="muted small">${esc(s.major)} · Year ${s.year} · Age ${s.age}</span>
+      <h3>${esc(s.name)} <span class="tag" data-tip="${esc(statTip('bars', 'rank'))}" data-tip-title="Rank ${studentRank(s)}">RANK ${studentRank(s)}</span></h3>
+      <div class="row">
+        <span class="muted small">${esc(s.major)} · Year ${s.year} · Age ${s.age}</span>
+        <button class="sm" onclick="openStatGuideModal()">? What do stats do?</button>
+      </div>
     </div>
     <p class="story" id="bs_${esc(s.id)}">${esc(s.description)}</p>
     ${SET.ai && SET.ai.on ? `<button class="sm" onclick="aiBackstory('bs_${esc(s.id)}','${esc(s.id)}')">✨ Rewrite backstory</button>` : ''}
     <div style="margin:8px 0">${(s.traits || []).map(t => {
       const td = PEOPLE.traits[t];
       return `<span class="tag" title="${esc((td && td.summary) || '')}">${esc(t)}: ${esc((td && td.summary) || '')}</span>`;
-    }).join('')}</div>
+    }).join('')}${s.autoResting ? `<span class="tag">😴 Auto-resting</span>` : ''}</div>
+
+    <div class="muted small" style="margin:6px 0"><b>Schedule:</b> Morning: ${esc(mCls)} · Afternoon: ${esc(aCls)} · Evening: ${esc(eRole)}</div>
+    <label class="chk small muted"><input type="checkbox" ${s.autoRest ? 'checked' : ''} onchange="setStudentAutoRest('${esc(s.id)}', this.checked)"> Auto-rest at &le;${BAL.fatigue.autoRestLowEnergy}% Energy (resume at &ge;${BAL.fatigue.autoRestResumeEnergy}%)</label>
 
     <div style="margin:10px 0">
-      ${bar('Energy', studentEnergy(s), 100, studentEnergy(s) > 30 ? 'e' : 'h')}
-      ${bar('Arousal', s.arousal, 100, 'p')}
-      ${bar('Depravity', s.depravity, 100, 'm')}
+      ${bar('Energy', studentEnergy(s), 100, studentEnergy(s) > 30 ? 'e' : 'h', statTip('bars', 'energy'))}
+      ${bar('Arousal', s.arousal, 100, 'p', statTip('bars', 'arousal'))}
+      ${bar('Depravity', s.depravity, 100, 'm', statTip('bars', 'depravity'))}
     </div>
 
     <h3>Aptitudes</h3>
     <div class="sgrid">
-      ${APT_KEYS.map(k => `<div><span>${k.toUpperCase()}</span><b>${Math.round(s.aptitudes[k])}</b></div>`).join('')}
+      ${APT_KEYS.map(k => {
+        const tip = statTip('aptitudes', k);
+        return `<div title="${esc(tip)}" data-tip="${esc(tip)}" data-tip-title="${esc(cap(k))}"><span>${k.toUpperCase()}</span><b>${Math.round(s.aptitudes[k])}</b></div>`;
+      }).join('')}
     </div>
 
     <h3 style="margin-top:10px">Core &amp; Social Skills</h3>
     <div class="sgrid">
-      ${coreSkills.map(k => `<div><span>${esc(SKILL_LABELS[k].toUpperCase())}</span><b>${Math.round(s.skills[k] || 0)}</b></div>`).join('')}
+      ${coreSkills.map(k => {
+        const tip = statTip('skills', k);
+        return `<div title="${esc(tip)}" data-tip="${esc(tip)}" data-tip-title="${esc(SKILL_LABELS[k])}"><span>${esc(SKILL_LABELS[k].toUpperCase())}</span><b>${Math.round(s.skills[k] || 0)}</b></div>`;
+      }).join('')}
     </div>
 
     <h3 style="margin-top:10px">Intimate &amp; VIP Service Skills</h3>
     <div class="sgrid">
-      ${svcSkills.map(k => `<div><span>${esc(SKILL_LABELS[k].toUpperCase())}</span><b>${Math.round(s.skills[k] || 0)}</b></div>`).join('')}
+      ${svcSkills.map(k => {
+        const tip = statTip('skills', k);
+        return `<div title="${esc(tip)}" data-tip="${esc(tip)}" data-tip-title="${esc(SKILL_LABELS[k])}"><span>${esc(SKILL_LABELS[k].toUpperCase())}</span><b>${Math.round(s.skills[k] || 0)}</b></div>`;
+      }).join('')}
     </div>
 
     <h3 style="margin-top:10px">Physical Manifest</h3>

@@ -17,13 +17,21 @@
     "dailyUpkeepBase": 120,
     "dailyUpkeepPerStudent": 50,
     "managerRevenueBonus": 0.25,
-    "academicIntBonus": 0.5,
+    "academicIntBonus": 0.85,
     "recruiterQualityBonus": 15,
     "recruiterExtraApplicants": 4,
     "applicantRefreshCost": 500,
     "nobleTipBonus": 0.1,
     "refinementTipScale": 0.005,
-    "infamyRevenueScale": 0.004
+    "infamyRevenueScale": 0.004,
+    "mandatedPayments": {
+      "intervalDays": 14,
+      "schedule": [5000, 8000, 12000, 17500, 24000, 32000, 42000, 55000],
+      "extraStepAfterTable": 15000,
+      "lateFeeRate": 0.25,
+      "lateFeeMin": 2500,
+      "maxMissed": 3
+    }
   },
   "fatigue": {
     "classGain": 10,
@@ -33,6 +41,8 @@
     "studyRestRecovery": 20,
     "nightRecoveryBase": 14,
     "nightRecoveryPerLevel": 8,
+    "autoRestLowEnergy": 30,
+    "autoRestResumeEnergy": 75,
     "collapseThreshold": 95,
     "collapseRecovery": 35,
     "collapseCompliancePenalty": 4
@@ -46,6 +56,8 @@
     "nightVisitThreshold": 70,
     "nightVisitDrop": 70,
     "nightVisitMin": 10,
+    "nightVisitDismissFatigueCut": 10,
+    "nightVisitDismissArousalDrop": 35,
     "nightVisitComplianceGain": 6,
     "nightVisitLustGain": 4,
     "nightVisitDepravityGain": 2
@@ -106,34 +118,36 @@
       "arousal": 3
     },
     "lead_seminar": {
-      "energy": 40,
-      "skillBonus": 3.5,
-      "acadRep": 1.5
+      "energy": 35,
+      "skillBonus": 2.2,
+      "acadRep": 2.0
     },
     "city_work": {
-      "energy": 45,
-      "basePay": 650,
-      "intPay": 14,
-      "acadPay": 8
+      "energy": 40,
+      "basePay": 450,
+      "intPay": 10,
+      "acadPay": 10,
+      "acadRep": 1.0
     },
     "personal_counseling": {
-      "energy": 25,
-      "fatigueCut": 28,
-      "compliance": 5
+      "energy": 20,
+      "fatigueCut": 40,
+      "compliance": 7
     },
     "vip_filtering": {
-      "energy": 25,
-      "tipBonus": 0.35,
+      "energy": 35,
+      "tipBonus": 0.30,
       "extraPatron": 1,
       "incidentCut": 0.35
     },
     "intimate_guidance": {
-      "energy": 50,
+      "energy": 35,
       "lust": 8,
-      "compliance": 7,
-      "seduction": 5,
-      "arousal": 20,
-      "depravity": 3
+      "compliance": 8,
+      "seduction": 6,
+      "kissing": 3,
+      "arousal": 24,
+      "depravity": 5
     }
   }
 }

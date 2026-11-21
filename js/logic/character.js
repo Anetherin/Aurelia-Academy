@@ -128,6 +128,8 @@ function genStudent(qualityLevel = 25){
     skills[sk] = Math.min(100, (skills[sk] || 0) + 15);
   });
 
+  const defaultClass = ACAD.majors[major].defaultClass || 'Academics';
+
   const s = {
     id: uid(),
     seed: ri(1, 2147483646),
@@ -145,9 +147,13 @@ function genStudent(qualityLevel = 25){
     },
     design,
     major,
-    classFocus: ACAD.majors[major].defaultClass || 'Academics',
+    classFocus: defaultClass,
+    morningFocus: defaultClass,
+    afternoonFocus: defaultClass,
     clubRole: 'None',
     serviceFocus: 'auto',
+    autoRest: true,
+    autoResting: false,
     lastPeriodScene: null,
     skills,
     aptitudes,
@@ -169,9 +175,15 @@ function ensureStudent(s){
   s.seed = s.seed || (hashStr(s.name || s.id) % 2147483646) || 1;
   s.age = Math.max(18, Math.round(Number(s.age) || 20));
   s.major = ACAD.majors[s.major] ? s.major : 'Academic';
-  s.classFocus = ACAD.classes[s.classFocus] ? s.classFocus : ACAD.majors[s.major].defaultClass;
+  const defClass = ACAD.majors[s.major].defaultClass || 'Academics';
+  const baseClass = ACAD.classes[s.classFocus] ? s.classFocus : defClass;
+  s.morningFocus = ACAD.classes[s.morningFocus] ? s.morningFocus : baseClass;
+  s.afternoonFocus = ACAD.classes[s.afternoonFocus] ? s.afternoonFocus : baseClass;
+  s.classFocus = s.morningFocus;
   s.clubRole = ACAD.roles[s.clubRole] ? s.clubRole : 'None';
   s.serviceFocus = s.serviceFocus || 'auto';
+  if(s.autoRest === undefined) s.autoRest = true;
+  s.autoResting = !!s.autoResting;
   s.skills = Object.assign(
     Object.fromEntries(SKILL_KEYS.map(k => [k, 10])),
     s.skills || {}
@@ -276,13 +288,30 @@ function eligibleServices(s){
   );
 }
 
+function eligibleNightVisitStages(s){
+  const all = Object.values(NIGHT_VISITS || {});
+  return all.filter(st =>
+    st.id === 'tease' ||
+    (s.depravity || 0) >= (st.depravityMin || 0) ||
+    ((s.skills && s.skills.compliance) || 0) >= (st.complianceMin || 0)
+  );
+}
+
+function studentStudyFocus(s, time){
+  const t = time || (S && S.time) || 'Morning';
+  if(t === 'Afternoon') return s.afternoonFocus || s.classFocus || 'Academics';
+  return s.morningFocus || s.classFocus || 'Academics';
+}
+
 function studentCurrentScene(s, time){
   const t = time || (S && S.time) || 'Morning';
   if(t === 'Morning' || t === 'Afternoon'){
-    const key = 'class_' + (s.classFocus || 'Academics');
+    if(s.autoResting) return 'class_Rest';
+    const key = 'class_' + studentStudyFocus(s, t);
     return SCENES[key] ? key : 'class_Academics';
   }
   if(t === 'Evening'){
+    if(s.autoResting) return 'night_rest';
     if(s.clubRole === 'Private_Service' && s.serviceFocus && s.serviceFocus !== 'auto' && SERVICES[s.serviceFocus]){
       return 'svc:' + s.serviceFocus;
     }

@@ -12,15 +12,36 @@ function viewSettings(){
     <div class="row" style="margin-top:8px">
       Resolution <select id="s_res">${['512x512', '512x768', '768x512'].map(r => `<option ${r === SET.resolution ? 'selected' : ''}>${r}</option>`).join('')}</select>
       <label class="chk"><input type="checkbox" id="s_autoImg" ${SET.autoImg !== false ? 'checked' : ''}> Auto-generate images on sheets when none saved</label>
-      <label class="chk"><input type="checkbox" id="s_autoPort" ${SET.autoPortrait ? 'checked' : ''}> Auto-generate portraits</label>
+      <label class="chk"><input type="checkbox" id="s_autoPort" ${SET.autoPortrait ? 'checked' : ''}> Auto-generate initial portrait when a student has no saved image</label>
+      <label class="chk"><input type="checkbox" id="s_autoSceneChange" ${SET.autoSceneChange ? 'checked' : ''}> Auto-generate new scene/schedule pics even when a student already has a saved image</label>
       <label class="chk"><input type="checkbox" id="s_imgHidden" ${SET.imgHidden ? 'checked' : ''}> Start images hidden</label>
       <label class="chk"><input type="checkbox" id="s_repImg" ${SET.repImg !== false ? 'checked' : ''}> Period Report: auto-show saved encounter images</label>
       <label class="chk"><input type="checkbox" id="s_libPool" ${SET.libraryInPool ? 'checked' : ''}> Library templates appear in Admissions</label>
       <label class="chk"><input type="checkbox" id="s_thoughts" ${SET.showStudentThoughts !== false ? 'checked' : ''}> Show student inner thoughts on VIP reports</label>
     </div>
     <div class="row" style="margin-top:8px">
-      <button class="primary" onclick="saveSettingsUI()">Save Image Settings</button>
+      <button class="primary" onclick="saveSettingsUI()">Save Settings</button>
       <span class="muted small">Image plugin: ${imgPlug ? '<span class="good">connected</span>' : '<span class="warn">not connected</span>'} · IndexedDB cache: ${DB ? '<span class="good">ready</span>' : '<span class="warn">unavailable</span>'}</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Gameplay &amp; Night Visits</h2>
+    <p class="muted">Choose how Late-Night Visits behave when a student's Arousal exceeds ${BAL.arousal.nightVisitThreshold}.</p>
+    <div class="row" style="margin-top:8px">
+      <label class="small muted">Night Visit Tone
+        <select id="s_nvTone">
+          <option value="explicit" ${SET.nightVisitTone !== 'suggestive' ? 'selected' : ''}>Explicit (Escalating stages)</option>
+          <option value="suggestive" ${SET.nightVisitTone === 'suggestive' ? 'selected' : ''}>Suggestive (Fade to black)</option>
+        </select>
+      </label>
+      <label class="small muted">Night Visit Handling
+        <select id="s_nvMode">
+          <option value="auto" ${SET.nightVisitMode !== 'prompt' ? 'selected' : ''}>Auto-escalate (log to Period Report)</option>
+          <option value="prompt" ${SET.nightVisitMode === 'prompt' ? 'selected' : ''}>Prompt me (choose each visit)</option>
+        </select>
+      </label>
+      <button class="primary" onclick="saveSettingsUI()">Save Settings</button>
     </div>
   </section>
 
@@ -77,12 +98,15 @@ function saveSettingsUI(){
   SET.resolution = $('#s_res').value;
   SET.autoImg = $('#s_autoImg').checked;
   SET.autoPortrait = $('#s_autoPort').checked;
+  SET.autoSceneChange = $('#s_autoSceneChange').checked;
   SET.imgHidden = $('#s_imgHidden').checked;
   SET.repImg = $('#s_repImg').checked;
   SET.libraryInPool = $('#s_libPool').checked;
   SET.showStudentThoughts = $('#s_thoughts').checked;
+  SET.nightVisitTone = $('#s_nvTone').value;
+  SET.nightVisitMode = $('#s_nvMode').value;
   saveSettings();
-  toast('Image settings saved.');
+  toast('Settings saved.');
 }
 
 function saveAiUI(){

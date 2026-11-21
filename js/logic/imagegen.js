@@ -42,6 +42,23 @@ function imgKey(s, scene, cloth){
   return `${s.id}|${scene}|${cloth}`;
 }
 
+function studentSavedScene(s){
+  if(!s) return null;
+  if(IMGKEYS.has(imgKey(s, 'portrait', 'dressed'))) return { scene: 'portrait', cloth: 'dressed' };
+  const prefix = s.id + '|';
+  for(const k of IMGKEYS){
+    if(k.startsWith(prefix)){
+      const parts = k.split('|');
+      if(parts.length >= 3) return { scene: parts[1], cloth: parts.slice(2).join('|') };
+    }
+  }
+  return null;
+}
+
+function studentHasImage(s){
+  return !!(s && (THUMBS[s.id] || studentSavedScene(s)));
+}
+
 async function saveImage(key, url, s, scene){
   const small = await shrink(url, 768, 0.88);
   if(!small){
@@ -79,7 +96,10 @@ async function showImg(boxId, id, scene = 'portrait', cloth, mode, opts = {}){
     return;
   }
 
-  if(mode === undefined) mode = SET.autoImg !== false ? 'auto' : 'manual';
+  if(mode === undefined){
+    const allowAuto = SET.autoImg !== false && (SET.autoSceneChange || !studentHasImage(s));
+    mode = allowAuto ? 'auto' : 'manual';
+  }
   if(mode === 'manual') mode = undefined;
 
   const safeA = `'${esc(boxId)}','${esc(id)}','${esc(scene)}','${esc(cloth)}'`;

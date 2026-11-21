@@ -43,6 +43,7 @@ function payDebt(amount){
   }
   S.funds -= pay;
   S.debt -= pay;
+  S.cycleDebtPaid = (S.cycleDebtPaid || 0) + pay;
   S.stats.totalDebtPaid = (S.stats.totalDebtPaid || 0) + pay;
   logEvent(`DEBT LEDGER: Paid ${fmtMoney(pay)} toward the Academy debt. Remaining: ${fmtMoney(S.debt)}.`, 'success');
 
@@ -65,6 +66,89 @@ function payAllDebt(){
   return payDebt(Math.min(Math.floor(S.funds), S.debt));
 }
 
+function mandatedPaymentAmount(cycle){
+  const mp = BAL.economy.mandatedPayments || {};
+  const sched = Array.isArray(mp.schedule) && mp.schedule.length ? mp.schedule : [5000];
+  const idx = Math.max(1, Number(cycle) || 1) - 1;
+  const raw = idx < sched.length
+    ? sched[idx]
+    : sched[sched.length - 1] + (mp.extraStepAfterTable || 15000) * (idx - sched.length + 1);
+  return S ? Math.min(S.debt, raw) : raw;
+}
+
+function mandatedRemainingDue(){
+  if(!S || S.debt <= 0 || S.won) return 0;
+  const target = mandatedPaymentAmount(S.paymentCycle || 1);
+  return Math.max(0, Math.min(S.debt, target - (S.cycleDebtPaid || 0)));
+}
+
+function daysUntilMandatedPayment(){
+  if(!S) return 0;
+  return Math.max(0, (S.nextPaymentDay || 14) - (S.day || 1));
+}
+
+function processMandatedPayment(addHL, prevDay){
+  if(!S || S.debt <= 0 || S.won) return;
+  const mp = BAL.economy.mandatedPayments || {};
+  const cycle = S.paymentCycle || 1;
+  const due = mandatedRemainingDue();
+  if(due <= 0){
+    addHL({
+      kind: 'payment',
+      title: `Syndicate Installment #${cycle} Satisfied`,
+      text: `Your voluntary debt repayments this cycle already covered the scheduled ${fmtMoney(mandatedPaymentAmount(cycle))} installment.`
+    });
+    logEvent(`INSTALLMENT #${cycle}: Covered ahead of schedule by voluntary repayments.`, 'success');
+  } else if(S.funds >= due){
+    S.funds -= due;
+    S.debt -= due;
+    S.stats.totalDebtPaid = (S.stats.totalDebtPaid || 0) + due;
+    addHL({
+      kind: 'payment',
+      title: `Syndicate Installment #${cycle} Paid (-${fmtMoney(due)})`,
+      text: `Collected ${fmtMoney(due)} toward the Academy's debt ledger. Remaining debt: ${fmtMoney(Math.max(0, S.debt))}.`
+    });
+    logEvent(`INSTALLMENT #${cycle}: Collected ${fmtMoney(due)} (Remaining debt: ${fmtMoney(Math.max(0, S.debt))}).`, 'success');
+    if(S.debt <= 0){
+      S.debt = 0;
+      S.won = true;
+      logEvent(`VICTORY: Aurelia Academy's debt has been cleared in Year ${S.year}, Day ${S.day}!`, 'success');
+    }
+  } else {
+    const partial = Math.max(0, Math.min(Math.floor(S.funds), due));
+    if(partial > 0){
+      S.funds -= partial;
+      S.debt -= partial;
+      S.stats.totalDebtPaid = (S.stats.totalDebtPaid || 0) + partial;
+    }
+    const shortfall = due - partial;
+    const fee = Math.max(mp.lateFeeMin || 2500, Math.round(shortfall * (mp.lateFeeRate || 0.25)));
+    S.debt += fee;
+    S.stats.interestAccrued = (S.stats.interestAccrued || 0) + fee;
+    S.missedPayments = (S.missedPayments || 0) + 1;
+    S.reputation.academic = clamp(S.reputation.academic - 5);
+    S.reputation.refinement = clamp(S.reputation.refinement - 5);
+    S.reputation.infamy = clamp(S.reputation.infamy + 5);
+    const maxMissed = mp.maxMissed || 3;
+    const partialMsg = partial > 0
+      ? `Paid ${fmtMoney(partial)} partially, leaving ${fmtMoney(shortfall)} unpaid.`
+      : `Unable to cover the ${fmtMoney(due)} installment.`;
+    addHL({
+      kind: 'incident',
+      title: `Missed Installment #${cycle} (Strike ${S.missedPayments}/${maxMissed})`,
+      text: `${partialMsg} The credit syndicate added a ${fmtMoney(fee)} penalty to your debt and damaged Academy standing (-5 Prestige/Refinement, +5 Infamy).`
+    });
+    logEvent(`MISSED INSTALLMENT #${cycle}: ${partialMsg} Penalty +${fmtMoney(fee)} (Strike ${S.missedPayments}/${maxMissed}).`, 'error');
+    if(S.missedPayments >= maxMissed){
+      S.over = true;
+      S.foreclosureReason = 'missed_payments';
+    }
+  }
+  S.paymentCycle = cycle + 1;
+  S.nextPaymentDay = (S.nextPaymentDay || prevDay || S.day) + (mp.intervalDays || 14);
+  S.cycleDebtPaid = 0;
+}
+
 function showVictoryModal(){
   modal(`<h2>Debt Cleared!</h2>
     <p class="story">The final wire clears the credit house ledger. For the first time since assuming command, Aurelia Academy belongs entirely to you — debt-free in Year ${S.year}, Day ${S.day}.</p>
@@ -80,11 +164,16 @@ function showVictoryModal(){
 }
 
 function showGameOverModal(){
+  const maxMissed = (BAL.economy.mandatedPayments && BAL.economy.mandatedPayments.maxMissed) || 3;
+  const reasonText = S.foreclosureReason === 'missed_payments'
+    ? `After ${S.missedPayments} missed mandated syndicate installments (limit ${maxMissed}), the credit syndicate seized Aurelia Academy with ${fmtMoney(S.debt)} still unpaid.`
+    : `Year ${BAL.economy.maxYears} has closed with ${fmtMoney(S.debt)} still owed to the heiress's credit syndicate. Foreclosure notices are pinned to the Academy gates.`;
   modal(`<h2>Foreclosure</h2>
-    <p class="story">Year ${BAL.economy.maxYears} has closed with ${fmtMoney(S.debt)} still owed to the heiress's credit syndicate. Foreclosure notices are pinned to the Academy gates.</p>
+    <p class="story">${reasonText}</p>
     <div class="card">
       <div><b>Total Debt Paid:</b> ${fmtMoney(S.stats.totalDebtPaid)}</div>
-      <div><b>Total Interest Accrued:</b> ${fmtMoney(S.stats.interestAccrued)}</div>
+      <div><b>Total Interest &amp; Penalties:</b> ${fmtMoney(S.stats.interestAccrued)}</div>
+      <div><b>Missed Installments:</b> ${S.missedPayments || 0} / ${maxMissed}</div>
     </div>
     <div class="row">
       <button class="primary" onclick="closeModal();restart()">Start New Academy Run</button>
@@ -103,7 +192,8 @@ function applicantQuality(){
   if(!S) return 25;
   const bureau = S.facilities.bureau ? S.facilities.bureau.level : 1;
   const recBonus = S.director.activeRole === 'Recruiter' ? BAL.economy.recruiterQualityBonus : 0;
-  return Math.round(18 + bureau * 6 + (S.reputation.academic || 0) * 0.22 + recBonus);
+  const dirSoc = (S.director.aptitudes && S.director.aptitudes.social) || 0;
+  return Math.round(18 + bureau * 6 + (S.reputation.academic || 0) * 0.22 + recBonus + dirSoc * 0.1);
 }
 
 function generateApplicants(){

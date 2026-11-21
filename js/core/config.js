@@ -12,11 +12,13 @@ const noMeta = o => Object.fromEntries(Object.entries(o || {}).filter(([k]) => !
 
 const BAL = needData('balance');
 const ACAD = needData('academy');
+const STAT_DOCS = ACAD.statDocs || {};
 const PEOPLE = needData('people');
 const SERVICES_DATA = needData('services');
 const SERVICES = noMeta(SERVICES_DATA.services);
 const ROLE_STORIES = noMeta(SERVICES_DATA.roles);
 const INCIDENTS_DATA = noMeta(SERVICES_DATA.incidents);
+const NIGHT_VISITS = noMeta(SERVICES_DATA.nightVisits);
 const SCENES_DATA = needData('scenes');
 const SCENES = noMeta(SCENES_DATA.scenes);
 const SNIPPETS = needData('snippets');
@@ -31,10 +33,13 @@ const DEFAULT_SETTINGS = {
   resolution: "512x768",
   autoPortrait: true,
   autoImg: true,
+  autoSceneChange: false,
   imgHidden: false,
   repImg: true,
   libraryInPool: true,
   showStudentThoughts: true,
+  nightVisitTone: 'explicit',
+  nightVisitMode: 'auto',
   ai: { on: true, auto: false, autoBackstory: false, guidance: '' }
 };
 

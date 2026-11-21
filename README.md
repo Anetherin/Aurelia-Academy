@@ -33,3 +33,5 @@ A dark-academia school and nightlife club management simulation that runs direct
 - Serve locally over HTTP (`python3 -m http.server`) and open `http://localhost:8000` (fetching `data/*.json` requires HTTP, not `file://`).
 - `node tools/check-data.mjs` verifies script files and JSON data sets.
 - `node tools/smoke.mjs 14` runs a full 14-day headless Playwright simulation and prompt safety/brace audit.
+
+See [TODO.md](TODO.md) for planned future features (Elite Patron Buyouts and the Lineage Wing / Incubator).

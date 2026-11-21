@@ -31,6 +31,7 @@ function aiCtx(s, x = {}){
     arousal: Math.round(s.arousal || 0),
     director: (S && S.director && S.director.name) || 'Vane',
     service: x.service || 'private company',
+    activity: x.activity || 'private company',
     tier: x.tier || 'Decent',
     setting: sc.setting || 'Aurelia Academy',
     situation: x.situation || 'a private meeting after hours',
@@ -54,7 +55,11 @@ async function aiWrite(boxId, kind, sid, extra = {}){
     return null;
   }
 
-  const tpl = DEFAULT_AI_TPL[kind] || DEFAULT_AI_TPL.night_visit;
+  let tplKey = kind;
+  if(kind === 'night_visit' && SET.nightVisitTone === 'suggestive' && DEFAULT_AI_TPL.night_visit_suggestive){
+    tplKey = 'night_visit_suggestive';
+  }
+  const tpl = DEFAULT_AI_TPL[tplKey] || DEFAULT_AI_TPL.night_visit;
   const ctx = aiCtx(s, extra);
   const instruction = fillAiTpl(tpl, ctx).replace(/ {2,}/g, ' ').trim();
 

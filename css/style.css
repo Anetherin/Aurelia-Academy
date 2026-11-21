@@ -142,6 +142,27 @@ nav button.on { background: var(--panel2); }
 }
 .wcard-ctls label { display: flex; flex-direction: column; gap: 3px; }
 .wcard-ctls select { width: 100%; font-size: 12px; padding: 5px 7px; }
+.wcard-sched {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  cursor: default;
+}
+.sched-row {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+.sched-now { background: rgba(99, 102, 241, .14); }
+.sched-now > span { color: var(--accent2); font-weight: 600; }
+.sched-row select { width: 100%; font-size: 12px; padding: 4px 7px; }
+.auto-rest-row { display: flex; justify-content: space-between; align-items: center; padding-top: 2px; }
+.auto-rest-row .chk { margin: 0; }
 
 .avatar {
   flex: 0 0 56px;
@@ -281,6 +302,15 @@ nav button.on { background: var(--panel2); }
 .hl.night_visit, .hl.vip { border-left-color: var(--pink); }
 .hl.collapse { border-left-color: var(--red); }
 .hl.interest, .hl.incident { border-left-color: var(--gold); }
+.hl.payment { border-left-color: var(--green); }
+.period-details {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 12, 22, .65);
+}
+.period-details summary { cursor: pointer; }
 .ai-box {
   margin-top: 8px;
   padding: 8px 10px;
@@ -290,11 +320,44 @@ nav button.on { background: var(--panel2); }
   white-space: pre-line;
 }
 
+.loglist { max-height: 280px; overflow-y: auto; }
 .loglist div { border-bottom: 1px solid var(--line); padding: 6px 0; font-size: 13px; }
 .log-private { color: #f9a8d4; }
 .log-error, .log-tier_fail { color: var(--red); }
 .log-success, .log-tier_excellent { color: var(--green); }
 .log-warning { color: var(--gold); }
+
+[data-tip] { cursor: help; }
+.guide-sec {
+  background: rgba(15, 23, 42, .65);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.guide-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 0;
+  border-bottom: 1px dotted rgba(148, 163, 184, .18);
+}
+.guide-item:last-child { border-bottom: none; }
+.visit-choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.visit-choices button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 9px 12px;
+}
+.pay-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(8, 12, 22, .65);
+}
 
 #ftr {
   position: fixed;

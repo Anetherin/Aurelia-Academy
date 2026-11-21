@@ -32,6 +32,12 @@ function viewReport(){
         </div>`;
       }).join('') || '<p class="muted">No notable incidents or encounters occurred this period.</p>'}
     </div>
+    ${Array.isArray(lp.details) && lp.details.length ? `<details class="period-details">
+      <summary class="muted small">Period Activity Details (${lp.details.length})</summary>
+      <div class="col-list" style="margin-top:6px">
+        ${lp.details.map(d => `<div class="muted small">${esc(d)}</div>`).join('')}
+      </div>
+    </details>` : ''}
   </section>` : `<section class="card"><h2>Period Report</h2><p class="muted">Advance a period to generate your first shift report.</p></section>`;
 
   const filters = ['all', 'club', 'private', 'success', 'alerts', 'info'];
@@ -44,13 +50,14 @@ function viewReport(){
 
   return lpHtml + `<section class="card">
     <div class="row" style="justify-content:space-between">
-      <h3>Intelligence Feed</h3>
+      <h3>Recent Log <span class="muted small">(${(S.history || []).length}/${HISTORY_MAX})</span></h3>
       <div class="row">
         ${filters.map(f => `<button class="sm ${HIST_FILTER === f ? 'on' : ''}" onclick="HIST_FILTER='${f}';render()">${cap(f)}</button>`).join('')}
+        ${(S.history || []).length ? `<button class="sm" onclick="clearHistory()">Clear</button>` : ''}
       </div>
     </div>
     <div class="loglist">
-      ${hist.map(h => `<div class="log-${esc(h.type)}"><span class="muted small">${esc(h.stamp)}</span> ${esc(h.text)}</div>`).join('') || '<p class="muted">No intelligence records match this filter.</p>'}
+      ${hist.map(h => `<div class="log-${esc(h.type)}"><span class="muted small">${esc(h.stamp)}</span> ${esc(h.text)}</div>`).join('') || '<p class="muted">No recent events match this filter.</p>'}
     </div>
   </section>`;
 }

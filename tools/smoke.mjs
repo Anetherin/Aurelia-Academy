@@ -106,7 +106,7 @@ const BOT = `async (days) => {
   assert(S.selectedProtocol === 'lead_seminar', 'expected selectedProtocol preserved across Night');
   assert(studentCurrentScene(S.students[1], 'Morning').startsWith('class_'), 'Night scene must not stick on Morning');
 
-  // 4. Play N full days (4 ticks/day) exercising all protocols, roles, VIP services, grace period & weekly interest
+  // 4. Play N full days (4 ticks/day) exercising all protocols, roles, VIP services, grace period, mandated payment & weekly interest
   const startDebt = S.debt;
   const startDay = S.day;
   for (let d = 0; d < days; d++) {
@@ -117,9 +117,12 @@ const BOT = `async (days) => {
       S.protocolTargetId = S.students[idx % S.students.length].id;
 
       S.students.forEach((s, si) => {
-        s.clubRole = roleCycle[(idx + si) % roleCycle.length];
+        s.autoRest = false;
+        s.autoResting = false;
+        setStudentSchedule(s.id, 'Morning', Object.keys(ACAD.classes)[(idx + si) % Object.keys(ACAD.classes).length]);
+        setStudentSchedule(s.id, 'Afternoon', Object.keys(ACAD.classes)[(idx + si + 1) % Object.keys(ACAD.classes).length]);
+        setStudentSchedule(s.id, 'Evening', roleCycle[(idx + si) % roleCycle.length]);
         s.serviceFocus = svcCycle[(idx + si) % svcCycle.length];
-        s.classFocus = Object.keys(ACAD.classes)[(idx + si) % Object.keys(ACAD.classes).length];
       });
       advanceTime();
     }
@@ -129,19 +132,145 @@ const BOT = `async (days) => {
   }
   assert(S.day === startDay + days, 'day count mismatch');
   assert(S.stats.interestAccrued > 0, 'weekly interest never accrued after grace period over ' + days + ' days');
+  assert(S.paymentCycle >= 2 && S.nextPaymentDay === 28, 'Day 14 mandated payment did not advance cycle');
+  assert(S.history.length <= HISTORY_MAX, 'history exceeded HISTORY_MAX cap');
 
-  // 5. Debt partial payment & full payoff victory check
+  // 4b. Verify Morning/Afternoon separate schedule, Auto-Rest, details log & rebalanced protocols
+  const schedStu = S.students[0];
+  schedStu.autoRest = false;
+  schedStu.autoResting = false;
+  schedStu.fatigue = 0;
+  schedStu.skills.knowledge = 10;
+  schedStu.skills.fitness = 10;
+  schedStu.skills.kissing = 10;
+  setStudentSchedule(schedStu.id, 'Morning', 'Academics');
+  setStudentSchedule(schedStu.id, 'Afternoon', 'PE');
+  setStudentSchedule(schedStu.id, 'Evening', 'Hostess');
+  assert(schedStu.morningFocus === 'Academics' && schedStu.afternoonFocus === 'PE', 'separate schedule setter failed');
+  const know0 = schedStu.skills.knowledge;
+  const fit0 = schedStu.skills.fitness;
+  S.time = 'Morning';
+  S.selectedProtocol = 'rest';
+  advanceTime(); // Morning -> Afternoon
+  assert(schedStu.skills.knowledge > know0, 'Morning schedule did not train Academics');
+  assert(Array.isArray(S.lastPeriod.details) && S.lastPeriod.details.length > 0, 'expected lastPeriod.details for class ticks');
+  advanceTime(); // Afternoon -> Evening
+  assert(schedStu.skills.fitness > fit0, 'Afternoon schedule did not train PE');
+
+  // Auto-Rest trigger & resume check
+  schedStu.autoRest = true;
+  schedStu.autoResting = false;
+  schedStu.fatigue = 74; // 26% energy <= 30%
+  S.time = 'Morning';
+  advanceTime(); // enters auto-rest & rests
+  assert(schedStu.autoResting === true, 'Auto-Rest did not trigger at <=30% energy');
+  assert(schedStu.fatigue < 74, 'Auto-Rest did not recover fatigue');
+  assert(schedStu.morningFocus === 'Academics' && schedStu.clubRole === 'Hostess', 'Auto-Rest overwrote configured schedule');
+  schedStu.fatigue = 20; // 80% energy >= 75%
+  advanceTime(); // Afternoon -> Evening: exits auto-rest & resumes schedule
+  assert(schedStu.autoResting === false, 'Auto-Rest did not resume at >=75% energy');
+
+  // Rebalanced protocol costs & effects
+  S.time = 'Morning';
+  S.director.energy = 100;
+  S.selectedProtocol = 'lead_seminar';
+  advanceTime();
+  assert(S.director.energy === 65, 'expected lead_seminar to cost 35E');
+  S.time = 'Morning';
+  S.director.energy = 100;
+  S.selectedProtocol = 'personal_counseling';
+  S.protocolTargetId = schedStu.id;
+  schedStu.autoResting = false;
+  schedStu.morningFocus = 'Academics';
+  schedStu.fatigue = 60;
+  const expectedCounselFat = clamp(20 + BAL.fatigue.classGain * (1 - ((schedStu.aptitudes && schedStu.aptitudes.physicality) || 0) / 400) * traitMul(schedStu, 'fatigueMul'));
+  advanceTime();
+  assert(S.director.energy === 80 && Math.abs(schedStu.fatigue - expectedCounselFat) < 0.01, 'expected personal_counseling 20E / -40 fatigue');
+  S.time = 'Morning';
+  S.director.energy = 100;
+  S.selectedProtocol = 'intimate_guidance';
+  const kiss0 = schedStu.skills.kissing;
+  advanceTime();
+  assert(S.director.energy === 65 && schedStu.skills.kissing > kiss0, 'expected intimate_guidance 35E + kissing gain');
+  S.time = 'Morning';
+  S.director.energy = 100;
+  S.selectedProtocol = 'city_work';
+  S.reputation.academic = 20;
+  const acad0 = S.reputation.academic;
+  advanceTime();
+  assert(S.director.energy === 60 && S.reputation.academic > acad0, 'expected city_work 40E + academic prestige');
+  S.time = 'Evening';
+  S.director.energy = 100;
+  S.selectedProtocol = 'vip_filtering';
+  advanceTime();
+  assert(S.director.energy === 65, 'expected vip_filtering to cost 35E');
+  assert(!S.history.some(h => h.text.includes('Academics]:') || h.text.includes('PE & Conditioning]:')), 'routine class ticks should not spam S.history');
+
+  // Night Visit tone escalation & interactive prompt mode
+  const nvStu = S.students[1];
+  nvStu.depravity = 60;
+  nvStu.skills.compliance = 100;
+  nvStu.skills.lust = 100;
+
+  SET.nightVisitMode = 'auto';
+  SET.nightVisitTone = 'explicit';
+  let gotExplicitAnal = false;
+  for (let t = 0; t < 8 && !gotExplicitAnal; t++) {
+    S.time = 'Night';
+    nvStu.arousal = 95;
+    advanceTime();
+    if (S.lastPeriod.highlights.some(h => h.kind === 'night_visit' && h.studentId === nvStu.id && h.stageId === 'anal')) {
+      gotExplicitAnal = true;
+    }
+  }
+  assert(gotExplicitAnal, 'explicit Night Visit did not escalate to anal stage');
+
+  SET.nightVisitTone = 'suggestive';
+  let gotSuggestiveTease = false;
+  for (let t = 0; t < 8 && !gotSuggestiveTease; t++) {
+    S.time = 'Night';
+    nvStu.arousal = 95;
+    advanceTime();
+    if (S.lastPeriod.highlights.some(h => h.kind === 'night_visit' && h.studentId === nvStu.id && h.stageId === 'tease')) {
+      gotSuggestiveTease = true;
+    }
+  }
+  assert(gotSuggestiveTease, 'suggestive Night Visit did not resolve as tease stage');
+
+  SET.nightVisitTone = 'explicit';
+  SET.nightVisitMode = 'prompt';
+  let gotPrompt = false;
+  for (let t = 0; t < 8 && !gotPrompt; t++) {
+    S.time = 'Night';
+    nvStu.arousal = 95;
+    advanceTime();
+    if (!$('#modal').classList.contains('hidden') && $('#modalBox').textContent.includes('Late-Night Visit:')) {
+      gotPrompt = true;
+    }
+  }
+  assert(gotPrompt, 'prompt Night Visit mode did not open interactive modal');
+  chooseNightVisit(nvStu.id, 'oral');
+  assert(S.lastPeriod.highlights.some(h => h.kind === 'night_visit' && h.stageId === 'oral'), 'chooseNightVisit oral failed');
+  finishNightVisitModal();
+  assert($('#modal').classList.contains('hidden'), 'finishNightVisitModal did not close modal');
+  SET.nightVisitMode = 'auto';
+
+  // 5. Debt partial payment (credits cycle) & full payoff victory check
+  S.cycleDebtPaid = 0;
+  const remBefore = mandatedRemainingDue();
   S.funds = Math.max(S.funds, S.debt + 10000);
-  const paid1 = payDebt(10000);
-  assert(paid1 === 10000, 'partial debt payment failed');
+  const paid1 = payDebt(2000);
+  assert(paid1 === 2000 && S.cycleDebtPaid === 2000 && mandatedRemainingDue() === Math.max(0, remBefore - 2000), 'voluntary payment did not credit mandated cycle');
   payAllDebt();
   assert(S.debt === 0 && S.won === true, 'victory did not trigger on payoff');
   closeModal();
   S.endless = true;
 
-  // 6. Visit every UI tab, test mock Perchance plugins, and Student Sheet modal
+  // 6. Visit every UI tab, Stat Guide modal, mock Perchance plugins, and Student Sheet modal
+  let t2iCalls = 0;
   window.AA_PLUGINS = {
     t2i: ({ prompt, onFinish }) => {
+      t2iCalls++;
       const c = document.createElement('canvas');
       c.width = 16; c.height = 16;
       const ctx = c.getContext('2d');
@@ -162,13 +291,19 @@ const BOT = `async (days) => {
     render();
   }
 
-  // Verify imgHidden respected even when autoImg is true, and Clara O'Neill Save file onclick is safe
+  openStatGuideModal();
+  assert(!$('#modal').classList.contains('hidden') && $('#modalBox').textContent.includes('Skills Breakdown'), 'Stat Guide modal did not open');
+  closeModal();
+
+  // Verify imgHidden respected even when autoImg is true, Clara O'Neill Save file onclick is safe,
+  // and saved student image is NOT auto-replaced on scene/schedule change unless SET.autoSceneChange is true
   const clara = S.students.find(x => x.name === "Clara O'Neill") || S.students[0];
   SET.autoImg = true;
+  SET.autoSceneChange = false;
   SET.imgHidden = true;
   openSheet(clara.id);
   assert($('#sheetImg').dataset.key === '', 'expected sheetImg hidden when SET.imgHidden=true');
-  toggleImg('sheetImg', clara.id, $('#sceneSel').value, $('#clothSel').value, false);
+  toggleImg('sheetImg', clara.id, 'portrait', 'dressed', false);
   let dlBtn = null;
   for (let w = 0; w < 40; w++) {
     await new Promise(r => setTimeout(r, 50));
@@ -179,6 +314,26 @@ const BOT = `async (days) => {
   assert(dlBtn, 'Save file button did not render after image generation');
   assert(!dlBtn.getAttribute('onclick').includes("O'Neill"), 'raw apostrophe leaked into downloadImg onclick');
   SET.imgHidden = false;
+  closeModal();
+
+  // Now Clara already has portrait|dressed saved. Switch her Morning schedule to PE (uncached) and open sheet:
+  S.time = 'Morning';
+  setStudentSchedule(clara.id, 'Morning', 'PE');
+  t2iCalls = 0;
+  openSheet(clara.id);
+  await new Promise(r => setTimeout(r, 40));
+  assert(t2iCalls === 0, 'unexpected auto-generation when student already has a saved image and autoSceneChange=false');
+  assert($('#sceneSel').value === 'portrait', 'expected sheet to keep saved portrait instead of switching to uncached scene');
+  closeModal();
+
+  // Enable autoSceneChange and verify it DOES generate for the new schedule scene
+  SET.autoSceneChange = true;
+  t2iCalls = 0;
+  openSheet(clara.id);
+  for (let w = 0; w < 30 && t2iCalls === 0; w++) await new Promise(r => setTimeout(r, 20));
+  assert(t2iCalls >= 1, 'expected auto-generation when autoSceneChange=true');
+  assert($('#sceneSel').value === 'class_PE', 'expected sheet to switch to class_PE when autoSceneChange=true');
+  SET.autoSceneChange = false;
   closeModal();
 
   // Verify saved encounter image auto-shows on Period Report when SET.repImg is true
@@ -209,15 +364,31 @@ const BOT = `async (days) => {
   assert(flatPrompt.includes(SNIPPETS.scenes.private), 'VIP scene missing private snippet');
   assert(flatPrompt.includes('bare flat chest') && !flatPrompt.includes('bare breasts'), 'AA bust nude prompt failed chestFix');
 
-  // Save/Import round-trip check & Year 4 foreclosure check
+  // Save/Import round-trip check, missed payment strikes foreclosure, & Year 4 foreclosure check
   const exported = JSON.stringify(S);
   doImport('save', exported);
   assert(S.students.length === 4 && S.won === true, 'save import round-trip failed');
+
+  const strikeState = JSON.parse(exported);
+  strikeState.won = false; strikeState.endless = false; strikeState.debt = 50000;
+  strikeState.funds = 0; strikeState.missedPayments = 0; strikeState.cycleDebtPaid = 0;
+  strikeState.day = 14; strikeState.nextPaymentDay = 14; strikeState.time = 'Night';
+  S = migrate(strikeState);
+  advanceTime(); // strike 1
+  assert(S.missedPayments === 1 && S.debt > 50000 && !S.over, 'strike 1 late fee failed');
+  S.funds = 0; S.day = S.nextPaymentDay; S.time = 'Night';
+  advanceTime(); // strike 2
+  assert(S.missedPayments === 2 && !S.over, 'strike 2 should not foreclose yet');
+  S.funds = 0; S.day = S.nextPaymentDay; S.time = 'Night';
+  advanceTime(); // strike 3 -> foreclosure
+  assert(S.over === true && S.foreclosureReason === 'missed_payments', 'expected 3-strike mandated payment foreclosure');
+  closeModal();
 
   const cloneState = JSON.parse(exported);
   cloneState.won = false; cloneState.endless = false; cloneState.debt = 50000;
   cloneState.day = BAL.economy.maxYears * BAL.economy.daysPerYear;
   cloneState.year = BAL.economy.maxYears; cloneState.time = 'Night';
+  cloneState.nextPaymentDay = cloneState.day + 10;
   S = migrate(cloneState);
   advanceTime();
   assert(S.over === true, 'expected Year 4 foreclosure when unpaid');

@@ -40,7 +40,8 @@ function runServiceEncounter(s, serviceId, clubLevel, tipBonusMult, revBonusMult
     (s.skills.seduction || 0) * 0.2 +
     (s.skills.compliance || 0) * 0.1 +
     (s.aptitudes.libido || 0) * 0.1 +
-    (s.skills.lust || 0) * 0.05;
+    (s.skills.lust || 0) * 0.05 +
+    (s.skills.kissing || 0) * 0.08;
 
   const roll = rnd(-10, 10);
   const finalScore = perfScore + roll + clubLevel * 5 - reluctantPenalty;
@@ -49,9 +50,10 @@ function runServiceEncounter(s, serviceId, clubLevel, tipBonusMult, revBonusMult
   const revMult = BAL.tiers.revenueMult[tier] ?? 0;
   const tMult = BAL.tiers.tipMult[tier] ?? 0;
 
+  const stuSocTipMult = 1 + ((s.aptitudes && s.aptitudes.social) || 0) * 0.002;
   const revenue = Math.round(svc.baseRevenue * revMult * revBonusMult * traitMul(s, 'revMul'));
-  const baseTip = svc.baseRevenue * 0.22 + (s.skills.seduction || 0) * 4.5 + (s.skills.etiquette || 0) * 1.5;
-  const tip = Math.round(baseTip * tMult * tipBonusMult * traitMul(s, 'tipMul') * rnd(0.85, 1.2));
+  const baseTip = svc.baseRevenue * 0.22 + (s.skills.seduction || 0) * 4.5 + (s.skills.etiquette || 0) * 1.5 + (s.skills.kissing || 0) * 1.5 + (s.skills.lust || 0) * 1.0;
+  const tip = Math.round(baseTip * tMult * tipBonusMult * stuSocTipMult * traitMul(s, 'tipMul') * rnd(0.85, 1.2));
 
   const custPool = (svc.customer && svc.customer[tier]) || [];
   const stuPool = (svc.student && svc.student[tier]) || [];
@@ -83,6 +85,62 @@ function runServiceEncounter(s, serviceId, clubLevel, tipBonusMult, revBonusMult
   };
 }
 
+function resolveNightVisit(s, stageId, opts = {}){
+  const st = (NIGHT_VISITS && NIGHT_VISITS[stageId]) || (NIGHT_VISITS && NIGHT_VISITS.tease) || {
+    id: 'tease',
+    label: 'Private Tension',
+    scene: 'night_visit',
+    cloth: 'partial',
+    activity: 'close-quarters tension',
+    rewards: { compliance: 5, lust: 3, depravity: 2, seduction: 2 },
+    suggestive: ['{name} visited your study after curfew.'],
+    explicit: ['{name} visited your study after curfew.']
+  };
+  const bgId = S.director.bgId;
+  const compBgMult = bgId === 'fixer' ? 1.2 : 1.0;
+  const dirAuthMult = 1 + ((S.director.aptitudes && S.director.aptitudes.physicality) || 0) / 250;
+  const dirLibMult = 1 + ((S.director.aptitudes && S.director.aptitudes.libido) || 0) / 200;
+  const rew = st.rewards || {};
+
+  s.skills.compliance = clamp((s.skills.compliance || 0) + (rew.compliance || BAL.arousal.nightVisitComplianceGain) * compBgMult * dirAuthMult * traitMul(s, 'compMul'));
+  s.skills.lust = clamp((s.skills.lust || 0) + (rew.lust || BAL.arousal.nightVisitLustGain) * dirLibMult * traitMul(s, 'lustMul'));
+  s.depravity = clamp((s.depravity || 0) + (rew.depravity || BAL.arousal.nightVisitDepravityGain) * dirLibMult * traitMul(s, 'depravityMul'));
+  if(rew.seduction) s.skills.seduction = clamp((s.skills.seduction || 0) + rew.seduction * dirLibMult);
+  if(rew.skill && rew.skillGain) s.skills[rew.skill] = clamp((s.skills[rew.skill] || 0) + rew.skillGain);
+
+  s.stats.visits = (s.stats.visits || 0) + 1;
+  S.stats.nightVisits = (S.stats.nightVisits || 0) + 1;
+  s.lastPeriodScene = st.scene || 'night_visit';
+  s.arousal = Math.max(BAL.arousal.nightVisitMin, s.arousal - BAL.arousal.nightVisitDrop);
+
+  const tone = opts.tone || SET.nightVisitTone || 'explicit';
+  const pool = (tone === 'suggestive' ? st.suggestive : st.explicit) || st.explicit || st.suggestive || [];
+  const rawProse = pool.length ? pick(pool) : `${s.name} visited your executive study after lights out.`;
+  const dirName = (S.director && S.director.name) || 'Vane';
+  const prose = rawProse.replace(/\{name\}/g, s.name).replace(/\{director\}/g, dirName);
+
+  const hlId = opts.hlId || `hl_${S.day}_Night_nv_${s.id}_${Date.now().toString(36)}`;
+  return {
+    id: hlId,
+    kind: 'night_visit',
+    title: `Late-Night Visit (${st.label}): ${s.name}`,
+    text: prose,
+    studentId: s.id,
+    scene: st.scene || 'night_visit',
+    cloth: st.cloth || 'under',
+    expr: 'lost',
+    stageId: st.id,
+    aiKind: 'night_visit',
+    aiExtra: { scene: st.scene || 'night_visit', cloth: st.cloth || 'under', activity: st.activity || 'private company' }
+  };
+}
+
+function dismissNightVisit(s){
+  s.fatigue = clamp((s.fatigue || 0) - (BAL.arousal.nightVisitDismissFatigueCut || 10));
+  s.skills.compliance = clamp((s.skills.compliance || 0) + 1);
+  s.arousal = Math.max(BAL.arousal.nightVisitMin, s.arousal - (BAL.arousal.nightVisitDismissArousalDrop || 35));
+}
+
 function advanceTime(){
   if(!S || S.over) return;
 
@@ -91,6 +149,7 @@ function advanceTime(){
   const isNightTransition = time === 'Night';
   const nextTime = isNightTransition ? 'Morning' : times[(times.indexOf(time) + 1) % 4];
   const nextDay = isNightTransition ? S.day + 1 : S.day;
+  const wasWon = !!S.won;
 
   const P_PROT = BAL.protocols;
   const protDef = (ACAD.protocols || []).find(p => p.id === S.selectedProtocol) || ACAD.protocols[0];
@@ -110,6 +169,7 @@ function advanceTime(){
   S.director.energy = clamp(S.director.energy - (activeProt.energy || 0), 0, S.director.maxEnergy);
 
   const highlights = [];
+  const periodDetails = [];
   let hlCounter = 0;
   const addHL = (h) => highlights.push(Object.assign({ id: `hl_${S.day}_${time}_${hlCounter++}` }, h));
 
@@ -119,10 +179,17 @@ function advanceTime(){
   let refinDelta = 0;
   let infamyDelta = 0;
 
-  // Background + active Director role multipliers
+  // Background, Director stats & active specialization multipliers
   const bgId = S.director.bgId;
   const dRole = S.director.activeRole;
-  const intMult = 1 + (S.director.aptitudes.intelligence / 150) * (dRole === 'Academic' ? (1 + BAL.economy.academicIntBonus) : 1);
+  const dirInt = (S.director.aptitudes && S.director.aptitudes.intelligence) || 0;
+  const dirPhys = (S.director.aptitudes && S.director.aptitudes.physicality) || 0;
+  const dirSoc = (S.director.aptitudes && S.director.aptitudes.social) || 0;
+  const dirLib = (S.director.aptitudes && S.director.aptitudes.libido) || 0;
+
+  const intMult = 1 + (dirInt / 150) * (dRole === 'Academic' ? (1 + BAL.economy.academicIntBonus) : 1);
+  const dirAuthMult = 1 + dirPhys / 250;
+  const dirLibMult = 1 + dirLib / 200;
   const knowledgeMult = bgId === 'academic' ? 1.1 : 1.0;
   const compBgMult = bgId === 'fixer' ? 1.2 : 1.0;
   const etiqBgMult = bgId === 'noble' ? 1.15 : 1.0;
@@ -156,23 +223,29 @@ function advanceTime(){
   } else if(effectiveId === 'city_work'){
     const consultingPay = Math.round(
       P_PROT.city_work.basePay +
-      S.director.aptitudes.intelligence * P_PROT.city_work.intPay +
+      dirInt * P_PROT.city_work.intPay +
       S.reputation.academic * P_PROT.city_work.acadPay
     );
+    const repGain = P_PROT.city_work.acadRep || 0;
+    if(repGain) S.reputation.academic = clamp(S.reputation.academic + repGain);
     totalIncome += consultingPay;
     addHL({
       kind: 'protocol',
       title: 'Executive Protocol: City Consulting',
-      text: `You took a discreet off-campus advisory contract in the financial district, bringing ${fmtMoney(consultingPay)} into Academy reserves.`
+      text: `You took a discreet off-campus advisory contract in the financial district, bringing ${fmtMoney(consultingPay)} into Academy reserves${repGain ? ` and +${repGain} Academic Prestige` : ''}.`
     });
-    logEvent(`DIRECTOR: City Consulting earned ${fmtMoney(consultingPay)}.`, 'success');
+    logEvent(`DIRECTOR: City Consulting earned ${fmtMoney(consultingPay)}${repGain ? ` (+${repGain} Prestige)` : ''}.`, 'success');
   } else if(effectiveId === 'personal_counseling' || effectiveId === 'intimate_guidance'){
     const target = S.students.find(x => x.id === S.protocolTargetId) || S.students[0];
     if(target){
       if(effectiveId === 'personal_counseling'){
         const pc = P_PROT.personal_counseling;
         target.fatigue = clamp(target.fatigue - pc.fatigueCut);
-        target.skills.compliance = clamp(target.skills.compliance + pc.compliance * compBgMult * traitMul(target, 'compMul'));
+        target.skills.compliance = clamp(target.skills.compliance + pc.compliance * compBgMult * dirAuthMult * traitMul(target, 'compMul'));
+        if(target.autoRest && target.autoResting && studentEnergy(target) >= BAL.fatigue.autoRestResumeEnergy){
+          target.autoResting = false;
+          logEvent(`AUTO-REST: ${target.name} recovered via counseling and resumed her schedule.`, 'info');
+        }
         addHL({
           kind: 'protocol',
           title: `Targeted Counseling: ${target.name}`,
@@ -187,16 +260,17 @@ function advanceTime(){
         logEvent(`DIRECTOR: Targeted Counseling with ${target.name} (-${pc.fatigueCut} fatigue, +Compliance).`, 'info');
       } else {
         const ig = P_PROT.intimate_guidance;
-        target.skills.lust = clamp(target.skills.lust + ig.lust * traitMul(target, 'lustMul'));
-        target.skills.compliance = clamp(target.skills.compliance + ig.compliance * compBgMult * traitMul(target, 'compMul'));
-        target.skills.seduction = clamp(target.skills.seduction + ig.seduction);
+        target.skills.lust = clamp(target.skills.lust + ig.lust * dirLibMult * traitMul(target, 'lustMul'));
+        target.skills.compliance = clamp(target.skills.compliance + ig.compliance * compBgMult * dirAuthMult * traitMul(target, 'compMul'));
+        target.skills.seduction = clamp(target.skills.seduction + ig.seduction * dirLibMult);
+        if(ig.kissing) target.skills.kissing = clamp((target.skills.kissing || 0) + ig.kissing * dirLibMult);
         target.arousal = clamp(target.arousal + ig.arousal);
-        target.depravity = clamp(target.depravity + ig.depravity * traitMul(target, 'depravityMul'));
+        target.depravity = clamp(target.depravity + ig.depravity * dirLibMult * traitMul(target, 'depravityMul'));
         target.stats.visits = (target.stats.visits || 0) + 1;
         addHL({
           kind: 'protocol',
           title: `Intimate Guidance: ${target.name}`,
-          text: `Behind locked study doors, you personally guided ${target.name} through hands-on discipline (+${ig.lust} Lust, +${ig.compliance} Compliance, +${ig.seduction} Seduction, +${ig.depravity} Depravity).`,
+          text: `Behind locked study doors, you personally guided ${target.name} through hands-on discipline (+${ig.lust} Lust, +${ig.compliance} Compliance, +${ig.seduction} Seduction${ig.kissing ? `, +${ig.kissing} Kissing` : ''}, +${ig.depravity} Depravity).`,
           studentId: target.id,
           scene: 'intimate_guidance',
           cloth: 'partial',
@@ -212,7 +286,7 @@ function advanceTime(){
       kind: 'protocol',
       title: 'Executive Protocol: VIP Filtering',
       text: time === 'Evening'
-        ? 'You personally screened the Nightfall velvet rope (+35% tips, +1 VIP/Hostess patron, -35% incident risk).'
+        ? `You personally screened the Nightfall velvet rope (+${Math.round(P_PROT.vip_filtering.tipBonus * 100)}% tips, +${P_PROT.vip_filtering.extraPatron} VIP/Hostess patron, -${Math.round(P_PROT.vip_filtering.incidentCut * 100)}% incident risk).`
         : 'Reviewed tonight\'s high-society guest list ahead of Nightfall operations.'
     });
   } else {
@@ -228,17 +302,36 @@ function advanceTime(){
     });
   }
 
+  // Evaluate Auto-Rest state transitions before daytime/evening work or Evening support buffs
+  if(isNightTransition){
+    S.pendingNightVisits = [];
+  } else {
+    S.students.forEach(s => {
+      if(!s.autoRest && s.autoResting) s.autoResting = false;
+      if(s.fatigue >= BAL.fatigue.collapseThreshold || !s.autoRest) return;
+      if(!s.autoResting && studentEnergy(s) <= BAL.fatigue.autoRestLowEnergy){
+        s.autoResting = true;
+        periodDetails.push(`${s.name} entered Auto-Rest (Energy ${studentEnergy(s)}%).`);
+        logEvent(`AUTO-REST: ${s.name} stepped back to recover (Energy ${studentEnergy(s)}%).`, 'info');
+      } else if(s.autoResting && studentEnergy(s) >= BAL.fatigue.autoRestResumeEnergy){
+        s.autoResting = false;
+        periodDetails.push(`${s.name} finished Auto-Rest and resumed her schedule.`);
+        logEvent(`AUTO-REST: ${s.name} recovered to ${studentEnergy(s)}% and resumed duty.`, 'info');
+      }
+    });
+  }
+
   // Evening floor-wide support buffs (Bartender, Dancer, Singer, Security)
-  let clubFloorTipMult = tipBgMult * (1 + (S.reputation.refinement || 0) * BAL.economy.refinementTipScale);
+  let clubFloorTipMult = tipBgMult * (1 + (S.reputation.refinement || 0) * BAL.economy.refinementTipScale) * (1 + dirSoc * 0.002);
   let clubFloorRevMult = managerRevMult * (1 + (S.reputation.infamy || 0) * BAL.economy.infamyRevenueScale);
   let extraDrawFromDancers = 0;
-  let securityPower = bgId === 'fixer' ? 18 : 0;
+  let securityPower = (bgId === 'fixer' ? 18 : 0) + dirPhys * 0.35;
 
   if(time === 'Evening'){
     if(effectiveId === 'vip_filtering') clubFloorTipMult *= (1 + P_PROT.vip_filtering.tipBonus);
 
     S.students.forEach(s => {
-      if(s.fatigue >= BAL.fatigue.collapseThreshold) return;
+      if(s.fatigue >= BAL.fatigue.collapseThreshold || s.autoResting) return;
       if(s.clubRole === 'Bartender'){
         clubFloorTipMult += 0.08 + (s.skills.bartending / 400);
       } else if(s.clubRole === 'Dancer'){
@@ -258,7 +351,7 @@ function advanceTime(){
 
   S.students.forEach(s => {
     if(effectiveId === 'hall_walk'){
-      s.skills.compliance = clamp(s.skills.compliance + P_PROT.hall_walk.compliance * compBgMult * traitMul(s, 'compMul'));
+      s.skills.compliance = clamp(s.skills.compliance + P_PROT.hall_walk.compliance * compBgMult * dirAuthMult * traitMul(s, 'compMul'));
       s.arousal = clamp(s.arousal + P_PROT.hall_walk.arousal);
     }
 
@@ -266,34 +359,30 @@ function advanceTime(){
     if(isNightTransition){
       s.lastPeriodScene = null;
       if(s.arousal > BAL.arousal.nightVisitThreshold){
-        const visitChance = clamp((s.skills.compliance + 10) / 100, 0.1, 0.95);
+        const visitChance = clamp((s.skills.compliance + 10 + (s.skills.lust || 0) * 0.15) / 100, 0.1, 0.95);
         if(Math.random() < visitChance){
-          s.skills.compliance = clamp(s.skills.compliance + BAL.arousal.nightVisitComplianceGain * compBgMult * traitMul(s, 'compMul'));
-          s.skills.lust = clamp(s.skills.lust + BAL.arousal.nightVisitLustGain * traitMul(s, 'lustMul'));
-          s.depravity = clamp(s.depravity + BAL.arousal.nightVisitDepravityGain * traitMul(s, 'depravityMul'));
-          s.stats.visits = (s.stats.visits || 0) + 1;
-          S.stats.nightVisits = (S.stats.nightVisits || 0) + 1;
-          s.lastPeriodScene = 'night_visit';
-
-          const prose = `${s.name} slipped into your executive study after lights out, her pulse racing and composure worn thin from the day's tension. Behind the heavy mahogany doors she yielded completely to your direction.`;
-          addHL({
-            kind: 'night_visit',
-            title: `Late-Night Visit: ${s.name}`,
-            text: prose,
-            studentId: s.id,
-            scene: 'night_visit',
-            cloth: 'under',
-            expr: 'lost',
-            aiKind: 'night_visit',
-            aiExtra: { scene: 'night_visit', cloth: 'under' }
-          });
-          logEvent(`PRIVATE VISIT: ${s.name} visited your study late at night (+Compliance, +Lust).`, 'private');
+          if(SET.nightVisitMode === 'prompt'){
+            if(!S.pendingNightVisits.includes(s.id)) S.pendingNightVisits.push(s.id);
+          } else {
+            const stages = eligibleNightVisitStages(s);
+            const stageId = SET.nightVisitTone === 'suggestive'
+              ? 'tease'
+              : ((stages[stages.length - 1] && stages[stages.length - 1].id) || 'tease');
+            const hl = resolveNightVisit(s, stageId, { hlId: `hl_${S.day}_${time}_${hlCounter++}` });
+            highlights.push(hl);
+            logEvent(`PRIVATE VISIT (${stageId}): ${s.name} visited your study late at night (+Compliance, +Lust).`, 'private');
+          }
+        } else {
+          s.arousal = Math.max(BAL.arousal.nightVisitMin, s.arousal - BAL.arousal.nightVisitDrop);
         }
-        s.arousal = Math.max(BAL.arousal.nightVisitMin, s.arousal - BAL.arousal.nightVisitDrop);
       }
 
       const rec = BAL.fatigue.nightRecoveryBase + S.facilities.living_standards.level * BAL.fatigue.nightRecoveryPerLevel;
       s.fatigue = clamp(s.fatigue - rec);
+      if(s.autoRest && s.autoResting && studentEnergy(s) >= BAL.fatigue.autoRestResumeEnergy){
+        s.autoResting = false;
+        logEvent(`AUTO-REST: ${s.name} rested overnight to ${studentEnergy(s)}% and resumed duty.`, 'info');
+      }
       return;
     }
 
@@ -316,18 +405,32 @@ function advanceTime(){
       return;
     }
 
+    const stuFatigueRes = 1 - ((s.aptitudes && s.aptitudes.physicality) || 0) / 400;
+
     // Daytime classes (Morning & Afternoon)
     if(time === 'Morning' || time === 'Afternoon'){
       s.lastPeriodScene = null;
-      const focus = ACAD.classes[s.classFocus] || ACAD.classes.Academics;
-      if(focus.id === 'Rest'){
+      if(s.autoResting){
         s.fatigue = clamp(s.fatigue - BAL.fatigue.studyRestRecovery);
         s.arousal = clamp(s.arousal - BAL.arousal.restDrop);
-        logEvent(`${s.name} rested in the infirmary lounge (-${BAL.fatigue.studyRestRecovery} Fatigue).`, 'info');
+        s.lastPeriodScene = 'class_Rest';
+        periodDetails.push(`${s.name} [Auto-Rest]: Recovered ${BAL.fatigue.studyRestRecovery} Fatigue (Energy ${studentEnergy(s)}%).`);
+        if(s.autoRest && studentEnergy(s) >= BAL.fatigue.autoRestResumeEnergy){
+          s.autoResting = false;
+          logEvent(`AUTO-REST: ${s.name} recovered to ${studentEnergy(s)}% and resumed duty.`, 'info');
+        }
         return;
       }
 
-      const fatGain = BAL.fatigue.classGain * traitMul(s, 'fatigueMul');
+      const focus = ACAD.classes[studentStudyFocus(s, time)] || ACAD.classes.Academics;
+      if(focus.id === 'Rest'){
+        s.fatigue = clamp(s.fatigue - BAL.fatigue.studyRestRecovery);
+        s.arousal = clamp(s.arousal - BAL.arousal.restDrop);
+        periodDetails.push(`${s.name} rested in the infirmary lounge (-${BAL.fatigue.studyRestRecovery} Fatigue).`);
+        return;
+      }
+
+      const fatGain = BAL.fatigue.classGain * stuFatigueRes * traitMul(s, 'fatigueMul');
       s.fatigue = clamp(s.fatigue + fatGain);
 
       let arousalGain = BAL.arousal.baseTick + (s.aptitudes.libido / BAL.arousal.libidoDiv) + traitAdd(s, 'arousalAdd');
@@ -337,7 +440,8 @@ function advanceTime(){
 
       const facLvl = (S.facilities[focus.facility] && S.facilities[focus.facility].level) || 1;
       const seminarBonus = effectiveId === 'lead_seminar' ? P_PROT.lead_seminar.skillBonus : 0;
-      const rawGain = (rnd(0.8, 2.6) + facLvl * 0.9 + seminarBonus) * intMult * traitMul(s, 'classMul');
+      const stuIntMult = 0.9 + ((s.aptitudes && s.aptitudes.intelligence) || 25) / 250;
+      const rawGain = (rnd(0.8, 2.6) + facLvl * 0.9 + seminarBonus) * intMult * stuIntMult * traitMul(s, 'classMul');
 
       const trained = [];
       (focus.skills || []).forEach(sk => {
@@ -350,12 +454,12 @@ function advanceTime(){
         trained.push(`${SKILL_LABELS[sk] || sk} +${g.toFixed(1)}`);
       });
 
-      if(focus.rep === 'academic') acadDelta += rawGain / (nStu * 1.4);
+      if(focus.rep === 'academic') acadDelta += (rawGain / (nStu * 1.4)) * (1 + ((s.skills && s.skills.knowledge) || 0) / 200);
       else if(focus.rep === 'refinement') refinDelta += rawGain / (nStu * 1.4);
       else if(focus.rep === 'infamy') infamyDelta += rawGain / (nStu * 3.0);
 
       if(trained.length){
-        logEvent(`${s.name} [${focus.label}]: ${trained.join(', ')}.`, 'info');
+        periodDetails.push(`${s.name} [${time} · ${focus.label}]: ${trained.join(', ')}.`);
       }
       return;
     }
@@ -365,14 +469,28 @@ function advanceTime(){
       s.lastPeriodScene = null;
       s.arousal = clamp(s.arousal + BAL.arousal.baseTick + (s.aptitudes.libido / BAL.arousal.libidoDiv) + traitAdd(s, 'arousalAdd'));
 
+      if(s.autoResting){
+        s.fatigue = clamp(s.fatigue - BAL.fatigue.eveningRestRecovery);
+        s.lastPeriodScene = 'night_rest';
+        periodDetails.push(`${s.name} [Auto-Rest]: Took Evening off to recover (Energy ${studentEnergy(s)}%).`);
+        if(s.autoRest && studentEnergy(s) >= BAL.fatigue.autoRestResumeEnergy){
+          s.autoResting = false;
+          logEvent(`AUTO-REST: ${s.name} recovered to ${studentEnergy(s)}% and resumed duty.`, 'info');
+        }
+        return;
+      }
+
       if(s.clubRole === 'None' || canDoRole(s.clubRole, S.facilities)){
         s.fatigue = clamp(s.fatigue - BAL.fatigue.eveningRestRecovery);
+        periodDetails.push(`${s.name} [Off Duty]: Rested during Evening (Energy ${studentEnergy(s)}%).`);
         return;
       }
 
       const roleDef = ACAD.roles[s.clubRole];
       const clubLvl = S.facilities.nightclub.level;
       const filterExtra = effectiveId === 'vip_filtering' ? P_PROT.vip_filtering.extraPatron : 0;
+      const eveFatRes = stuFatigueRes * (1 - ((s.skills && s.skills.fitness) || 0) / 500);
+      const stuSocTipMult = 1 + ((s.aptitudes && s.aptitudes.social) || 0) * 0.002;
 
       // Support Roles: Bartender, Dancer, Singer, Security
       if(roleDef.kind === 'support'){
@@ -387,12 +505,12 @@ function advanceTime(){
         const tierPayMult = BAL.tiers.revenueMult[tier] || 0.5;
         const pay = Math.round(roleDef.basePay * tierPayMult * clubFloorRevMult * traitMul(s, 'revMul'));
         const tip = (s.clubRole === 'Dancer' || s.clubRole === 'Singer')
-          ? Math.round((45 + s.skills.seduction * 2) * (BAL.tiers.tipMult[tier] || 0.2) * clubFloorTipMult * traitMul(s, 'tipMul'))
+          ? Math.round((45 + s.skills.seduction * 2) * (BAL.tiers.tipMult[tier] || 0.2) * clubFloorTipMult * stuSocTipMult * traitMul(s, 'tipMul'))
           : 0;
 
         totalIncome += pay + tip;
         s.stats.earnings = (s.stats.earnings || 0) + pay + tip;
-        s.fatigue = clamp(s.fatigue + BAL.fatigue.supportRoleGain * traitMul(s, 'fatigueMul'));
+        s.fatigue = clamp(s.fatigue + BAL.fatigue.supportRoleGain * eveFatRes * traitMul(s, 'fatigueMul'));
 
         if(s.clubRole === 'Bartender') s.skills.bartending = clamp(s.skills.bartending + 1.0);
         if(s.clubRole === 'Dancer'){ s.skills.dancing = clamp(s.skills.dancing + 1.1); refinDelta += 0.35 / nStu; }
@@ -427,14 +545,14 @@ function advanceTime(){
         const tierOrder = ['Fail', 'Poor', 'Decent', 'Good', 'Excellent'];
 
         for(let i = 0; i < patrons; i++){
-          const hScore = s.skills.conversation * 0.4 + s.skills.etiquette * 0.35 + s.skills.seduction * 0.25 + clubLvl * 5 + rnd(-10, 10);
+          const hScore = s.skills.conversation * 0.4 + s.skills.etiquette * 0.35 + s.skills.seduction * 0.25 + (s.skills.kissing || 0) * 0.08 + clubLvl * 5 + rnd(-10, 10);
           const tier = tierFromScore(hScore);
           if(tierOrder.indexOf(tier) > tierOrder.indexOf(bestTier)) bestTier = tier;
           const pPay = Math.round(roleDef.basePay * (BAL.tiers.revenueMult[tier] || 0) * clubFloorRevMult * traitMul(s, 'revMul'));
-          const pTip = Math.round((30 + s.skills.conversation * 2.4 + s.skills.seduction * 1.5) * (BAL.tiers.tipMult[tier] || 0) * clubFloorTipMult * traitMul(s, 'tipMul'));
+          const pTip = Math.round((30 + s.skills.conversation * 2.4 + s.skills.seduction * 1.5 + (s.skills.knowledge || 0) * 0.6) * (BAL.tiers.tipMult[tier] || 0) * clubFloorTipMult * stuSocTipMult * traitMul(s, 'tipMul'));
           shiftPay += pPay;
           shiftTips += pTip;
-          s.fatigue = clamp(s.fatigue + BAL.fatigue.patronGain * traitMul(s, 'fatigueMul'));
+          s.fatigue = clamp(s.fatigue + BAL.fatigue.patronGain * eveFatRes * traitMul(s, 'fatigueMul'));
           const pool = (ROLE_STORIES.Hostess && ROLE_STORIES.Hostess[tier]) || [];
           lastLine = (pool.length ? pick(pool) : `${s.name} entertained a VIP table.`)
             .replace(/\{name\}/g, s.name)
@@ -474,9 +592,9 @@ function advanceTime(){
           shiftRev += enc.revenue;
           shiftTips += enc.tip;
           infamyDelta += enc.infamyGain / nStu;
-          s.fatigue = clamp(s.fatigue + BAL.fatigue.patronGain * traitMul(s, 'fatigueMul'));
+          s.fatigue = clamp(s.fatigue + BAL.fatigue.patronGain * eveFatRes * traitMul(s, 'fatigueMul'));
           if(!bestEnc || tierOrder.indexOf(enc.tier) >= tierOrder.indexOf(bestEnc.tier)) bestEnc = enc;
-          logEvent(`[${s.name}] Patron ${i + 1} (${enc.serviceLabel} · ${enc.tier}): ${enc.custText}`, `tier_${enc.tier.toLowerCase()}`);
+          periodDetails.push(`[${s.name}] Patron ${i + 1} (${enc.serviceLabel} · ${enc.tier}): +${fmtMoney(enc.revenue + enc.tip)} — ${enc.custText}`);
         }
 
         totalIncome += shiftRev + shiftTips;
@@ -504,6 +622,7 @@ function advanceTime(){
               tier: bestEnc.tier
             }
           });
+          logEvent(`[${s.name}] ${bestEnc.serviceLabel} (${patrons} patrons, best ${bestEnc.tier}): +${fmtMoney(shiftRev + shiftTips)}.`, bestEnc.tier === 'Fail' ? 'tier_fail' : 'success');
         }
       }
     }
@@ -535,7 +654,7 @@ function advanceTime(){
     }
   }
 
-  // Nightly Academy Upkeep & Weekly Debt Interest & Calendar Progression
+  // Nightly Academy Upkeep & Weekly Debt Interest & Mandated Payments & Calendar Progression
   if(isNightTransition){
     totalUpkeep += BAL.economy.dailyUpkeepBase + S.students.length * BAL.economy.dailyUpkeepPerStudent;
   }
@@ -601,9 +720,15 @@ function advanceTime(){
       }
     }
 
+    // Mandated Syndicate Installments
+    if(prevDay >= (S.nextPaymentDay || 14) && S.debt > 0 && !S.won){
+      processMandatedPayment(addHL, prevDay);
+    }
+
     // Check Year 4 deadline foreclosure
     if(!S.won && !S.endless && S.year > BAL.economy.maxYears && S.debt > 0){
       S.over = true;
+      S.foreclosureReason = S.foreclosureReason || 'deadline';
     }
   }
 
@@ -615,18 +740,25 @@ function advanceTime(){
     income: totalIncome,
     upkeep: totalUpkeep,
     net,
-    highlights
+    highlights,
+    details: periodDetails
   };
 
   save();
   render();
   if(isNightTransition){
-    const nv = highlights.some(h => h.kind === 'night_visit');
+    const nv = highlights.some(h => h.kind === 'night_visit') || (S.pendingNightVisits && S.pendingNightVisits.length > 0);
     toast(`Day ${S.day} begins${nv ? ' · Night Visit logged' : ''}`);
   } else if(time === 'Evening'){
     toast(`Evening D${prevDay} complete · ${net >= 0 ? '+' : ''}${fmtMoney(net)} net`);
   } else {
     toast(`${time} D${prevDay} complete${totalIncome ? ' · +' + fmtMoney(totalIncome) : ''}`);
   }
-  if(S.over) showGameOverModal();
+  if(S.over){
+    showGameOverModal();
+  } else if(!wasWon && S.won){
+    showVictoryModal();
+  } else if(S.pendingNightVisits && S.pendingNightVisits.length && typeof openNextNightVisitModal === 'function'){
+    openNextNightVisitModal();
+  }
 }

@@ -229,8 +229,8 @@
   ],
   "directorRoles": {
     "None": { "label": "None", "desc": "No passive specialization active." },
-    "Academic": { "label": "Academic Dean", "desc": "Your Intelligence provides +50% more bonus to all study gains." },
-    "Manager": { "label": "Club Manager", "desc": "Hostesses and Private Service earn +25% base revenue." },
+    "Academic": { "label": "Academic Dean", "desc": "Your Intelligence provides +85% more bonus to all study gains." },
+    "Manager": { "label": "Club Manager", "desc": "All Nightfall Club roles earn +25% base revenue." },
     "Recruiter": { "label": "Head Recruiter", "desc": "+15 Applicant quality and +4 candidates per queue." },
     "Researcher": { "label": "Facility Architect", "desc": "Facility expansions cost 20% less." }
   },
@@ -254,42 +254,87 @@
     {
       "id": "lead_seminar",
       "name": "Lead Academic Seminar",
-      "energy": 40,
+      "energy": 35,
       "periods": ["Morning", "Afternoon"],
       "targeted": false,
-      "effect": "Grants extra skill gains (+3.5 base) to all studying students and boosts Academic Prestige."
+      "effect": "Grants extra skill gains (+2.2 base) to all studying students and boosts Academic Prestige (+2.0)."
     },
     {
       "id": "city_work",
       "name": "City Consulting",
-      "energy": 45,
+      "energy": 40,
       "periods": ["Morning", "Afternoon", "Evening"],
       "targeted": false,
-      "effect": "Earn off-site consulting funds scaled by your Intelligence and Academic Prestige."
+      "effect": "Earn off-site consulting funds scaled by Intelligence & Academic Prestige, and gain +1.0 Academic Prestige."
     },
     {
       "id": "personal_counseling",
       "name": "Targeted Counseling",
-      "energy": 25,
+      "energy": 20,
       "periods": ["Morning", "Afternoon", "Evening"],
       "targeted": true,
-      "effect": "Reduces one student's fatigue by 28 and raises her Compliance by +5."
+      "effect": "Reduces one student's fatigue by 40 and raises her Compliance by +7."
     },
     {
       "id": "vip_filtering",
       "name": "VIP Filtering",
-      "energy": 25,
+      "energy": 35,
       "periods": ["Evening"],
       "targeted": false,
-      "effect": "Screens Evening patrons: +35% tips, +1 VIP/Hostess patron, and -35% incident risk."
+      "effect": "Screens Evening patrons: +30% tips, +1 VIP/Hostess patron, and -35% incident risk."
     },
     {
       "id": "intimate_guidance",
       "name": "Intimate Guidance",
-      "energy": 50,
+      "energy": 35,
       "periods": ["Morning", "Afternoon", "Evening"],
       "targeted": true,
-      "effect": "Private one-on-one session: +8 Lust, +7 Compliance, +5 Seduction, +20 Arousal, +3 Depravity."
+      "effect": "Private one-on-one session: +8 Lust, +8 Compliance, +6 Seduction, +3 Kissing, +24 Arousal, +5 Depravity."
     }
-  ]
+  ],
+  "statDocs": {
+    "bars": {
+      "energy": "Inverse of Fatigue (100 - Fatigue). Below 30% triggers Auto-Rest (if enabled); reaching 5% or less (95+ Fatigue) causes an exhaustion collapse, cancelling her shift and hurting Compliance.",
+      "arousal": "Builds daily from Libido, traits, and Seduction/Intimacy classes. Exceeding 70 by Nightfall creates a chance for a Late-Night Visit to your study.",
+      "depravity": "Unlocks higher-tier Private Services (Manual 10+, Oral 20+, Full Intimacy 35+, Backdoor 50+) and deeper Late-Night Visit stages without reluctance penalties.",
+      "rank": "Overall grade (E to SSS) based on the average of a student's four innate Aptitudes.",
+      "director_stamina": "Fuel for Executive Protocols. Night transition automatically runs Director's Rest (+35 Stamina). Protocols costing more Stamina than you have fall back to Recess."
+    },
+    "aptitudes": {
+      "intelligence": "Speeds up all daytime class skill gains (+1% per 2.5 INT over baseline) and determines overall Rank.",
+      "physicality": "Reduces fatigue accumulated during classes and Nightfall Club shifts, helping students work longer before resting.",
+      "social": "Directly increases tips earned across Nightfall Club roles (+0.2% per point) and contributes to overall Rank.",
+      "libido": "Accelerates daily Arousal buildup toward Late-Night Visits and directly boosts VIP Private Service performance scores."
+    },
+    "directorAptitudes": {
+      "intelligence": "Multiplies all students' daytime study gains (boosted further by +85% with Academic Dean active) and increases City Consulting income.",
+      "physicality": "Adds passive Security defense against Nightfall Club incidents (+0.35 power per point) and strengthens Compliance gains from Director protocols.",
+      "social": "Increases Nightfall Club tips across the floor (+0.2% per point) and improves incoming Admissions applicant quality.",
+      "libido": "Amplifies Lust, Seduction, and Depravity gains during Intimate Guidance and Late-Night Visits."
+    },
+    "skills": {
+      "knowledge": "Boosts Academic Prestige generated in lectures and increases Hostess conversation tips.",
+      "fitness": "Improves Dancer and Security club performance and reduces Evening shift fatigue.",
+      "etiquette": "Drives Hostess booth performance, VIP service tips, and Singer stage polish.",
+      "compliance": "Increases Late-Night Visit probability, unlocks VIP services & deeper Night Visit stages alongside Depravity, and supports VIP service scores.",
+      "lust": "Improves VIP Private Service performance & tips and increases Late-Night Visit likelihood.",
+      "singing": "Primary skill for Nightfall Club Singers, raising shift tier, gratuities, and Social Refinement.",
+      "dancing": "Primary skill for Nightfall Club Dancers, raising shift tier and unlocking extra patron draw at 45+.",
+      "bartending": "Primary skill for Nightfall Club Bartenders, raising shift tier and boosting floor-wide club tips.",
+      "conversation": "Primary skill for Hostesses and boosts Bartender drink service performance.",
+      "security": "Primary skill for Nightfall Security, raising shift pay and preventing costly City Infamy incidents.",
+      "seduction": "Boosts Hostess scores, all VIP Private Service scores, and VIP/Dancer/Singer tips.",
+      "massage": "Primary skill for Sensual Massage VIP encounters (tier score & revenue).",
+      "kissing": "Adds bonus performance score and extra tips to Hostess booths and VIP Private Services.",
+      "manual_service": "Primary skill for Manual Service VIP encounters (Depravity 10+ or Compliance 35+).",
+      "oral_service": "Primary skill for Oral Service VIP encounters (Depravity 20+ or Compliance 45+).",
+      "vaginal_service": "Primary skill for Full Intimacy VIP encounters (Depravity 35+ or Compliance 60+).",
+      "anal_service": "Primary skill for Backdoor Service VIP encounters (Depravity 50+ or Compliance 75+)."
+    },
+    "reputation": {
+      "academic": "Raises incoming applicant quality rolls and increases City Consulting contract fees.",
+      "refinement": "Increases gratuities across the Nightfall Club floor (+0.5% tips per point).",
+      "infamy": "Raises VIP base revenue (+0.4% per point), but elevates Nightfall Club incident risk unless countered by Security and VIP Filtering."
+    }
+  }
 }

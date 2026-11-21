@@ -3,6 +3,7 @@
    GAME STATE, PERSISTENCE & MIGRATIONS
    ===================================================================== */
 const SAVE_VER = 1;
+const HISTORY_MAX = 40;
 
 function makeInitialFacilities(){
   const out = {};
@@ -27,6 +28,7 @@ function newGameState(director, initialStudents){
   });
 
   const students = (initialStudents || []).map(ensureStudent);
+  const payInterval = (BAL.economy.mandatedPayments && BAL.economy.mandatedPayments.intervalDays) || 14;
   const s = {
     v: SAVE_VER,
     runName: `${director.name.trim()}'s Term`,
@@ -37,6 +39,12 @@ function newGameState(director, initialStudents){
     debt: BAL.economy.initialDebt,
     initialDebt: BAL.economy.initialDebt,
     funds: BAL.economy.initialFunds,
+    paymentCycle: 1,
+    nextPaymentDay: payInterval,
+    cycleDebtPaid: 0,
+    missedPayments: 0,
+    foreclosureReason: '',
+    pendingNightVisits: [],
     students,
     applicants: [],
     facilities: makeInitialFacilities(),
@@ -84,7 +92,15 @@ function logEvent(text, type = 'info', meta = {}){
   if(!S) return;
   const stamp = `[Y${S.year} D${S.day} ${S.time.charAt(0)}]`;
   S.history.unshift(Object.assign({ text, type, stamp, day: S.day, time: S.time }, meta));
-  if(S.history.length > 300) S.history.length = 300;
+  if(S.history.length > HISTORY_MAX) S.history.length = HISTORY_MAX;
+}
+
+function clearHistory(){
+  if(!S) return;
+  S.history = [];
+  save();
+  render();
+  toast('Log cleared.');
 }
 
 function save(){
@@ -136,7 +152,14 @@ function migrate(raw){
   }
   s.reputation = Object.assign({ academic: 10, refinement: 10, infamy: 0 }, s.reputation || {});
   s.stats = Object.assign({ totalEarned: 0, totalDebtPaid: 0, interestAccrued: 0, nightVisits: 0, incidentsHandled: 0, incidentsMissed: 0 }, s.stats || {});
-  s.history = Array.isArray(s.history) ? s.history : [];
+  s.history = Array.isArray(s.history) ? s.history.slice(0, HISTORY_MAX) : [];
+  const payInterval = (BAL.economy.mandatedPayments && BAL.economy.mandatedPayments.intervalDays) || 14;
+  s.paymentCycle = Math.max(1, Number(s.paymentCycle) || Math.ceil(s.day / payInterval));
+  s.nextPaymentDay = Number(s.nextPaymentDay) || (Math.ceil(s.day / payInterval) * payInterval);
+  s.cycleDebtPaid = Math.max(0, Number(s.cycleDebtPaid) || 0);
+  s.missedPayments = Math.max(0, Number(s.missedPayments) || 0);
+  s.foreclosureReason = s.foreclosureReason || '';
+  s.pendingNightVisits = Array.isArray(s.pendingNightVisits) ? s.pendingNightVisits : [];
   s.won = !!s.won;
   s.over = !!s.over;
   s.endless = !!s.endless;
